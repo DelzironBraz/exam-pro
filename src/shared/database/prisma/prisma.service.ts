@@ -9,7 +9,10 @@ import { Pool } from 'pg';
 import { PrismaClient } from '../../../generated/prisma';
 import { EnvService } from '../../config/env';
 import { LongRunningTaskRegistry } from '../../infra/long-running-task.registry';
-import { usesSupabaseDirectHost } from '../normalize-database-url';
+import {
+  getDatabaseHostForLog,
+  usesSupabaseDirectHost,
+} from '../normalize-database-url';
 import { createPgPoolConfig } from '../pg-pool-options';
 
 @Injectable()
@@ -22,20 +25,19 @@ export class PrismaService
 
   constructor(env: EnvService) {
     const rawUrl = env.getDatabaseUrl();
-    const pool = new Pool(createPgPoolConfig(rawUrl));
+    const poolConfig = createPgPoolConfig(rawUrl);
+    const pool = new Pool(poolConfig);
     const adapter = new PrismaPg(pool);
     super({ adapter });
     this.pool = pool;
 
-    if (
-      usesSupabaseDirectHost(rawUrl) &&
-      !env.getSupabasePoolerHost() &&
-      !process.env.DATABASE_POOLER_URL?.trim()
-    ) {
-      this.logger.error(
-        'DATABASE_URL aponta para db.*.supabase.co:5432 (IPv6 no Render → ENETUNREACH). ' +
-          'No Render: use a URL do pooler (6543) em DATABASE_URL, ou defina SUPABASE_POOLER_HOST=aws-1-sa-east-1.pooler.supabase.com',
+    const dbHost = getDatabaseHostForLog(rawUrl);
+    if (usesSupabaseDirectHost(rawUrl)) {
+      this.logger.warn(
+        `DATABASE_URL direct (IPv6 no Render) → usando pooler em ${dbHost}`,
       );
+    } else {
+      this.logger.log(`Postgres: ${dbHost}`);
     }
   }
 

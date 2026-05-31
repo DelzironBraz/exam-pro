@@ -1,6 +1,9 @@
+/** Pooler padrão (sa-east-1). Sobrescreva com SUPABASE_POOLER_HOST em outros regions. */
+const DEFAULT_SUPABASE_POOLER_HOST = 'aws-1-sa-east-1.pooler.supabase.com';
+
 /**
  * No Render, DATABASE_URL com host db.*.supabase.co:5432 resolve em IPv6 (ENETUNREACH).
- * Use pooler (6543) ou defina SUPABASE_POOLER_HOST para reescrever automaticamente.
+ * Reescreve automaticamente para o pooler (6543).
  */
 export function normalizeDatabaseUrl(connectionString: string): string {
   const poolerOverride = process.env.DATABASE_POOLER_URL?.trim();
@@ -22,12 +25,10 @@ export function normalizeDatabaseUrl(connectionString: string): string {
     return connectionString;
   }
 
-  const poolerHost = process.env.SUPABASE_POOLER_HOST?.trim();
-  if (!poolerHost) {
-    return connectionString;
-  }
-
   const projectRef = url.hostname.slice(3, -'.supabase.co'.length);
+  const poolerHost =
+    process.env.SUPABASE_POOLER_HOST?.trim() || DEFAULT_SUPABASE_POOLER_HOST;
+
   url.hostname = poolerHost;
   url.port = process.env.SUPABASE_POOLER_PORT?.trim() || '6543';
   url.searchParams.set('pgbouncer', 'true');
@@ -49,5 +50,13 @@ export function usesSupabaseDirectHost(connectionString: string): boolean {
     );
   } catch {
     return false;
+  }
+}
+
+export function getDatabaseHostForLog(connectionString: string): string {
+  try {
+    return new URL(normalizeDatabaseUrl(connectionString)).host;
+  } catch {
+    return '(invalid DATABASE_URL)';
   }
 }
