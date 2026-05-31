@@ -28,6 +28,18 @@ export class EnvSchema {
   DATABASE_URL: string;
 
   @IsString()
+  @IsOptional()
+  DATABASE_POOLER_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  SUPABASE_POOLER_HOST?: string;
+
+  @IsString()
+  @IsOptional()
+  SUPABASE_POOLER_PORT?: string;
+
+  @IsString()
   JWT_SECRET: string;
 
   @IsString()
@@ -57,6 +69,14 @@ export class EnvSchema {
   @IsString()
   @IsOptional()
   JURISWAY_MATERIAS?: string;
+
+  @IsString()
+  @IsOptional()
+  JURISWAY_SKIP_UNCHANGED_FETCH?: string;
+
+  @IsString()
+  @IsOptional()
+  JURISWAY_HTTP_PROXY?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

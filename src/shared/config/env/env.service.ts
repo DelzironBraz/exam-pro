@@ -14,7 +14,16 @@ export class EnvService {
   }
 
   getDatabaseUrl(): string {
+    const pooler = this.configService.get<string>('DATABASE_POOLER_URL', '');
+    if (pooler?.trim()) {
+      return pooler.trim();
+    }
     return this.configService.get<string>('DATABASE_URL', '');
+  }
+
+  getSupabasePoolerHost(): string | undefined {
+    const host = this.configService.get<string>('SUPABASE_POOLER_HOST', '');
+    return host?.trim() || undefined;
   }
 
   getPostgresUser(): string {
@@ -81,5 +90,16 @@ export class EnvService {
       .split(',')
       .map((m) => m.trim())
       .filter(Boolean);
+  }
+
+  /** Quando true, não baixa de novo questões já em import_sources (retomada rápida). */
+  isJuriswaySkipUnchangedFetch(): boolean {
+    const value = this.configService.get<string>('JURISWAY_SKIP_UNCHANGED_FETCH', 'true');
+    return value === 'true' || value === '1';
+  }
+
+  getJuriswayHttpProxy(): string | undefined {
+    const proxy = this.configService.get<string>('JURISWAY_HTTP_PROXY');
+    return proxy?.trim() || undefined;
   }
 }
