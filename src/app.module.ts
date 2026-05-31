@@ -19,7 +19,6 @@ import { LoggerModule } from './shared/infra/logger/logger.module';
 import { PrismaModule } from './shared/database/prisma/prisma.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { JuriswayCrawlerModule } from './modules/crawlers/jurisway/jurisway-crawler.module';
 import { HealthModule } from './shared/health/health.module';
 
 @Module({
@@ -39,7 +38,6 @@ import { HealthModule } from './shared/health/health.module';
     ExamsModule,
     PdfParserModule,
     AnalyticsModule,
-    JuriswayCrawlerModule,
     AuthModule,
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot({
