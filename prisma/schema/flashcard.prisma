@@ -1,0 +1,32 @@
+model Flashcard {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupId      String   @map("group_id") @db.Uuid
+  frontContent String   @map("front_content") @db.Text
+  backContent  String   @map("back_content") @db.Text
+  difficulty   Int      @default(1)
+  createdBy    String   @map("created_by") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  group   Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator User              @relation("FlashcardCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  reviews FlashcardReview[]
+
+  @@index([groupId])
+  @@map("flashcards")
+}
+
+model FlashcardReview {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flashcardId String   @map("flashcard_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  score       Int
+  reviewedAt  DateTime @default(now()) @map("reviewed_at")
+
+  flashcard Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, flashcardId])
+  @@index([userId, reviewedAt])
+  @@map("flashcard_reviews")
+}

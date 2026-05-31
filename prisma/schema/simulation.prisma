@@ -1,0 +1,66 @@
+model Simulation {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String   @db.VarChar(200)
+  description     String?  @db.Text
+  groupId         String   @map("group_id") @db.Uuid
+  timerMode       String   @map("timer_mode") @db.VarChar(20)
+  durationMinutes Int?     @map("duration_minutes")
+  createdBy       String   @map("created_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  group     Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator   User                  @relation("SimulationCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  questions SimulationQuestion[]
+  attempts  SimulationAttempt[]
+
+  @@index([groupId])
+  @@map("simulations")
+}
+
+model SimulationQuestion {
+  simulationId String @map("simulation_id") @db.Uuid
+  questionId   String @map("question_id") @db.Uuid
+  sortOrder    Int    @default(0) @map("sort_order")
+
+  simulation Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([simulationId, questionId])
+  @@map("simulation_questions")
+}
+
+model SimulationAttempt {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  simulationId     String    @map("simulation_id") @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  startedAt        DateTime  @default(now()) @map("started_at")
+  finishedAt       DateTime? @map("finished_at")
+  totalCorrect     Int       @default(0) @map("total_correct")
+  totalWrong       Int       @default(0) @map("total_wrong")
+  totalTimeSeconds Int       @default(0) @map("total_time_seconds")
+
+  simulation Simulation                @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+  user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers    SimulationAttemptAnswer[]
+
+  @@index([simulationId, userId])
+  @@map("simulation_attempts")
+}
+
+model SimulationAttemptAnswer {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  attemptId             String   @map("attempt_id") @db.Uuid
+  questionId            String   @map("question_id") @db.Uuid
+  selectedAlternativeId String   @map("selected_alternative_id") @db.Uuid
+  timeSpentSeconds      Int      @map("time_spent_seconds")
+  isCorrect             Boolean  @map("is_correct")
+  answeredAt            DateTime @default(now()) @map("answered_at")
+
+  attempt             SimulationAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question            Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAlternative Alternative       @relation("SimulationAttemptAnswers", fields: [selectedAlternativeId], references: [id], onDelete: Restrict)
+
+  @@unique([attemptId, questionId])
+  @@map("simulation_attempt_answers")
+}

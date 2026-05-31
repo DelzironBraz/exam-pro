@@ -1,0 +1,16 @@
+model ImportSource {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source     String   @db.VarChar(50)
+  externalId String   @map("external_id") @db.VarChar(50)
+  url        String   @db.VarChar(2048)
+  checksum   String   @db.VarChar(64)
+  questionId String?  @map("question_id") @db.Uuid
+  importedAt DateTime @default(now()) @map("imported_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  question Question? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  @@unique([source, externalId])
+  @@index([source])
+  @@map("import_sources")
+}

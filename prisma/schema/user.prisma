@@ -1,0 +1,23 @@
+model User {
+    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name         String   @db.VarChar(120)
+    email        String   @unique @db.VarChar(255)
+    passwordHash String?  @map("password_hash")
+    role         String   @default("student") @db.VarChar(20)
+    avatarUrl    String?  @map("avatar_url")
+    createdAt    DateTime @default(now()) @map("created_at")
+    updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+    ownedGroups       Group[]
+    createdQuestions  Question[]       @relation("QuestionCreator")
+    questionAnswers      QuestionAnswer[]
+    createdSimulations   Simulation[]           @relation("SimulationCreator")
+    simulationAttempts   SimulationAttempt[]
+    createdFlashcards    Flashcard[]         @relation("FlashcardCreator")
+    flashcardReviews     FlashcardReview[]
+    studyPlans           StudyPlan[]
+    examAttempts         ExamAttempt[]
+    importJobs           ImportJob[]
+
+    @@map("users")
+}

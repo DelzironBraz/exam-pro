@@ -1,0 +1,19 @@
+model ImportJob {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uploadedBy   String   @map("uploaded_by") @db.Uuid
+  fileUrl      String   @map("file_url") @db.VarChar(2048)
+  status       String   @db.VarChar(20)
+  type         String   @db.VarChar(20)
+  rawText      String?  @map("raw_text") @db.Text
+  parsedPayload Json?   @map("parsed_payload")
+  errorMessage String?  @map("error_message") @db.Text
+  approvedRefId String? @map("approved_ref_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  uploader User @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@index([uploadedBy])
+  @@index([status])
+  @@map("import_jobs")
+}

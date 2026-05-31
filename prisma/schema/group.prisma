@@ -1,0 +1,21 @@
+model Group {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(120)
+  slug        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  type        String   @db.VarChar(20)
+  visibility  String   @db.VarChar(20)
+  ownerId     String   @map("owner_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  questions   Question[]
+  tags        GroupTag[]
+  simulations Simulation[]
+  flashcards  Flashcard[]
+  studyPlans  StudyPlan[]
+  exams       Exam[]
+
+  @@map("groups")
+}

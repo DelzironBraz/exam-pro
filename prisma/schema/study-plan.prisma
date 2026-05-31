@@ -1,0 +1,31 @@
+model StudyPlan {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  groupId   String   @map("group_id") @db.Uuid
+  title     String   @db.VarChar(200)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  items StudyPlanItem[]
+
+  @@index([userId])
+  @@index([groupId])
+  @@map("study_plans")
+}
+
+model StudyPlanItem {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  studyPlanId    String  @map("study_plan_id") @db.Uuid
+  title          String  @db.VarChar(200)
+  description    String  @db.Text
+  estimatedHours Int     @map("estimated_hours")
+  sortOrder      Int     @map("sort_order")
+  completed      Boolean @default(false)
+
+  studyPlan StudyPlan @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+
+  @@index([studyPlanId])
+  @@map("study_plan_items")
+}

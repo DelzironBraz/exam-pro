@@ -1,0 +1,6 @@
+import { SetMetadata } from '@nestjs/common';
+import { UserRoleValue } from '../../modules/users/domain/value-objects/user-role.vo';
+
+export const ROLES_KEY = 'roles';
+
+export const Roles = (...roles: UserRoleValue[]) => SetMetadata(ROLES_KEY, roles);

@@ -1,0 +1,72 @@
+model Question {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  statement   String   @db.Text
+  groupId     String   @map("group_id") @db.Uuid
+  discipline  String?  @db.VarChar(120)
+  topic       String?  @db.VarChar(120)
+  difficulty  String   @db.VarChar(20)
+  explanation String?  @db.Text
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  group         Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator       User              @relation("QuestionCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  alternatives  Alternative[]
+  images        QuestionImage[]
+  tags          QuestionTag[]
+  userAnswers          QuestionAnswer[]
+  simulationQuestions  SimulationQuestion[]
+  simulationAnswers    SimulationAttemptAnswer[]
+  examQuestions        ExamQuestion[]
+  examAttemptAnswers   ExamAttemptAnswer[]
+  importSources        ImportSource[]
+
+  @@index([groupId])
+  @@index([difficulty])
+  @@map("questions")
+}
+
+model Alternative {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId String  @map("question_id") @db.Uuid
+  label      String  @db.VarChar(10)
+  content    String  @db.Text
+  isCorrect  Boolean @default(false) @map("is_correct")
+
+  question        Question         @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAnswers         QuestionAnswer[]          @relation("SelectedAlternative")
+  simulationAttemptAnswers SimulationAttemptAnswer[] @relation("SimulationAttemptAnswers")
+  examAttemptAnswers       ExamAttemptAnswer[]       @relation("ExamAttemptAnswers")
+
+  @@unique([questionId, label])
+  @@map("alternatives")
+}
+
+model QuestionImage {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId String @map("question_id") @db.Uuid
+  url        String @db.VarChar(2048)
+  sortOrder  Int    @default(0) @map("sort_order")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("question_images")
+}
+
+model QuestionAnswer {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String   @map("user_id") @db.Uuid
+  questionId            String   @map("question_id") @db.Uuid
+  selectedAlternativeId String   @map("selected_alternative_id") @db.Uuid
+  timeSpentSeconds      Int      @map("time_spent_seconds")
+  isCorrect             Boolean  @map("is_correct")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question            Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAlternative Alternative @relation("SelectedAlternative", fields: [selectedAlternativeId], references: [id], onDelete: Restrict)
+
+  @@index([userId, questionId])
+  @@map("question_answers")
+}
