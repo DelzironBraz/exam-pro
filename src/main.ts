@@ -7,6 +7,7 @@ import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
 import { ResponseInterceptor } from './shared/interceptors/response.interceptor';
 import { LoggerService } from './shared/infra/logger/logger.service';
+import { LongRunningTaskRegistry } from './shared/infra/long-running-task.registry';
 
 declare const module: any;
 
@@ -42,7 +43,16 @@ async function bootstrap() {
 
   if (module.hot) {
     module.hot.accept();
-    module.hot.dispose(() => app.close());
+    module.hot.dispose(() => {
+      if (LongRunningTaskRegistry.isActive) {
+        logger.warn(
+          'Bootstrap',
+          'HMR ignorado: sync JurisWay em andamento. Não salve arquivos até concluir.',
+        );
+        return;
+      }
+      void app.close();
+    });
   }
 }
 void bootstrap();
