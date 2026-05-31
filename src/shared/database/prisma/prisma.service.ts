@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { PrismaClient } from '../../../generated/prisma';
 import { EnvService } from '../../config/env';
 import { LongRunningTaskRegistry } from '../../infra/long-running-task.registry';
+import { createPgPoolConfig } from '../pg-pool-options';
 
 @Injectable()
 export class PrismaService
@@ -13,7 +14,7 @@ export class PrismaService
   private readonly pool: Pool;
 
   constructor(env: EnvService) {
-    const pool = new Pool({ connectionString: env.getDatabaseUrl() });
+    const pool = new Pool(createPgPoolConfig(env.getDatabaseUrl()));
     const adapter = new PrismaPg(pool);
     super({ adapter });
     this.pool = pool;

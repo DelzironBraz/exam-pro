@@ -2,6 +2,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../src/generated/prisma';
+import { createPgPoolConfig } from '../src/shared/database/pg-pool-options';
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -9,7 +10,7 @@ async function main() {
     throw new Error('DATABASE_URL is required');
   }
 
-  const pool = new Pool({ connectionString });
+  const pool = new Pool(createPgPoolConfig(connectionString));
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
