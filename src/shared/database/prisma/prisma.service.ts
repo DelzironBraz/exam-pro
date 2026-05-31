@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../../../generated/prisma';
 import { EnvService } from '../../config/env';
+import { LongRunningTaskRegistry } from '../../infra/long-running-task.registry';
 
 @Injectable()
 export class PrismaService
@@ -23,6 +24,10 @@ export class PrismaService
   }
 
   async onModuleDestroy() {
+    if (LongRunningTaskRegistry.isActive) {
+      return;
+    }
+
     await this.$disconnect();
     await this.pool.end();
   }
