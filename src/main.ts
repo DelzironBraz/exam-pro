@@ -1,7 +1,5 @@
 import { setDefaultResultOrder } from 'node:dns';
-import { ValidationPipe } from '@nestjs/common';
-
-setDefaultResultOrder('ipv4first');
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -12,6 +10,8 @@ import { ResponseInterceptor } from './shared/interceptors/response.interceptor'
 import { LoggerService } from './shared/infra/logger/logger.service';
 import { LongRunningTaskRegistry } from './shared/infra/long-running-task.registry';
 
+setDefaultResultOrder('ipv4first');
+
 declare const module: any;
 
 async function bootstrap() {
@@ -19,6 +19,13 @@ async function bootstrap() {
 
   const logger = app.get(LoggerService);
   const env = app.get(EnvService);
+
+  app.setGlobalPrefix('api', {
+    exclude: [
+      { path: 'health', method: RequestMethod.ALL },
+      { path: '', method: RequestMethod.ALL },
+    ],
+  });
 
   app.useGlobalFilters(new AllExceptionsFilter(logger));
   app.useGlobalInterceptors(
@@ -40,7 +47,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document, { useGlobalPrefix: true });
 
   await app.listen(env.getPort());
 
