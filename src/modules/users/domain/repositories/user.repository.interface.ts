@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { BaseRepository } from '../../../../shared/domain/repositories/base.repository.interface';
 import { User } from '../entities/user.entity';
 import { UserRoleValue } from '../value-objects/user-role.vo';
@@ -31,6 +32,8 @@ export interface UserRepository extends BaseRepository<
   CreateUserData,
   UpdateUserData
 > {
+  findMany(pagination: PaginationParams): Promise<User[]>;
+  count(): Promise<number>;
   findByEmail(email: string): Promise<User | null>;
   findAuthByEmail(email: string): Promise<UserAuthRecord | null>;
 }

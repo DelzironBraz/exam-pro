@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { JwtPayload } from '../../../auth/domain/entities/jwt-payload.entity';
@@ -56,10 +57,10 @@ export class GroupsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List groups (admin only)' })
+  @ApiOperation({ summary: 'List groups (admin only, paginated)' })
   async findAll(@Query() query: ListGroupsQueryDto) {
-    const groups = await this.listGroupsUseCase.execute(query);
-    return GroupResponse.fromList(groups);
+    const result = await this.listGroupsUseCase.execute(query);
+    return new PaginatedResponse(result, (group) => GroupResponse.from(group));
   }
 
   @Get(':id')

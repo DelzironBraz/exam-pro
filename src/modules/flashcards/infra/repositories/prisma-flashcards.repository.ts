@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { FlashcardEntity } from '../../domain/entities/flashcard.entity';
@@ -34,12 +36,22 @@ export class PrismaFlashcardsRepository
     return flashcard ? FlashcardMapper.toDomain(flashcard) : null;
   }
 
-  async findManyByGroup(groupId: string): Promise<FlashcardEntity[]> {
+  async findManyByGroup(
+    groupId: string,
+    pagination: PaginationParams,
+  ): Promise<FlashcardEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const flashcards = await this.prisma.flashcard.findMany({
       where: { groupId },
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
     return flashcards.map(FlashcardMapper.toDomain);
+  }
+
+  async countByGroup(groupId: string): Promise<number> {
+    return this.prisma.flashcard.count({ where: { groupId } });
   }
 
   async update(flashcard: FlashcardEntity): Promise<FlashcardEntity> {

@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { ImportStatus } from '../enums/import-status.enum';
 import { ImportJobEntity } from '../entities/import-job.entity';
 
@@ -11,7 +12,12 @@ export abstract class ImportJobsRepository {
 
   abstract findById(id: string): Promise<ImportJobEntity | null>;
 
-  abstract findByUser(uploadedBy: string): Promise<ImportJobEntity[]>;
+  abstract findByUser(
+    uploadedBy: string,
+    pagination: PaginationParams,
+  ): Promise<ImportJobEntity[]>;
+
+  abstract countByUser(uploadedBy: string): Promise<number>;
 
   abstract updateStatus(id: string, status: ImportStatus, errorMessage?: string): Promise<void>;
 

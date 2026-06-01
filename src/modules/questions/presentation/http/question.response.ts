@@ -80,14 +80,3 @@ export class QuestionResponse {
   }
 }
 
-export class ListQuestionsResponse {
-  items: QuestionResponse[];
-  total: number;
-
-  constructor(items: QuestionEntity[], total: number, tagsByQuestionId?: Map<string, string[]>) {
-    this.items = items.map((q) =>
-      QuestionResponse.fromSummary(q, tagsByQuestionId?.get(q.id) ?? []),
-    );
-    this.total = total;
-  }
-}

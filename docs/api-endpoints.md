@@ -25,7 +25,8 @@ Documentação de todos os endpoints da **Offensive World API**, com entradas, s
 | Item | Valor |
 |------|--------|
 | Base URL | `http://localhost:3000` (dev) |
-| Swagger UI | `http://localhost:3000/api` |
+| Prefixo da API | `/api` |
+| Swagger UI | `http://localhost:3000/api/docs` |
 | Formato | JSON (`Content-Type: application/json`), exceto uploads PDF |
 | Autenticação | `Authorization: Bearer <accessToken>` (JWT) |
 | IDs | UUID v4 |
@@ -61,6 +62,29 @@ Erros HTTP retornam corpo com `success: false`, `message` e `statusCode` (via `A
 - **Público** — sem token
 - **Autenticado** — qualquer usuário logado
 - **Admin** — `role: admin` + guards `JwtAuthGuard`, `RolesGuard`, `AdminGuard`
+
+### Paginação (endpoints de listagem)
+
+Todos os endpoints `GET` que **listam coleções** aceitam paginação via query string:
+
+| Parâmetro | Tipo | Default | Limites |
+|-----------|------|---------|---------|
+| `page` | int | `1` | mínimo `1` |
+| `limit` | int | `20` | mínimo `1`, máximo `100` |
+
+**Saída paginada (`data`)**
+
+```json
+{
+  "items": [ /* ... */ ],
+  "total": 150,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 8
+}
+```
+
+> Endpoints de mutação que retornam listas completas (ex.: sync/attach de tags) **não** usam paginação — retornam `TagResponse[]` diretamente dentro de `data`.
 
 ---
 
@@ -140,11 +164,16 @@ Autentica com e-mail e senha (Passport Local).
 }
 ```
 
-### `GET /users` — Listar usuários
+### `GET /users` — Listar usuários (paginado)
 
-**Entrada** — nenhuma
+**Entrada (query)** — todos opcionais
 
-**Saída (`data`)** — `UserResponse[]`
+| Parâmetro | Tipo | Default |
+|-----------|------|---------|
+| `page` | int | `1` |
+| `limit` | int | `20` (max `100`) |
+
+**Saída (`data`)** — resposta paginada de `UserResponse`
 
 ### `GET /users/:id` — Buscar usuário
 
@@ -213,17 +242,19 @@ Autentica com e-mail e senha (Passport Local).
 }
 ```
 
-### `GET /groups` — Listar grupos
+### `GET /groups` — Listar grupos (paginado)
 
 **Entrada (query)** — todos opcionais
 
 | Parâmetro | Tipo |
 |-----------|------|
+| `page` | int (default `1`) |
+| `limit` | int (default `20`, max `100`) |
 | `type` | enum `GroupType` |
 | `visibility` | enum `GroupVisibility` |
 | `ownerId` | UUID |
 
-**Saída (`data`)** — `GroupResponse[]` (sem tags na listagem resumida)
+**Saída (`data`)** — resposta paginada de `GroupResponse` (sem tags na listagem resumida)
 
 ### `GET /groups/:id` — Detalhe do grupo
 
@@ -301,12 +332,14 @@ Autentica com e-mail e senha (Passport Local).
 }
 ```
 
-### `GET /questions` — **Autenticado**
+### `GET /questions` — **Autenticado** (paginado)
 
 **Entrada (query)** — todos opcionais
 
 | Parâmetro | Tipo |
 |-----------|------|
+| `page` | int (default `1`) |
+| `limit` | int (default `20`, max `100`) |
 | `groupId` | UUID |
 | `discipline` | string |
 | `topic` | string |
@@ -318,7 +351,10 @@ Autentica com e-mail e senha (Passport Local).
 ```json
 {
   "items": [ { "id": "...", "statement": "...", "tags": [], ... } ],
-  "total": 42
+  "total": 42,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 3
 }
 ```
 
@@ -381,17 +417,23 @@ Autentica com e-mail e senha (Passport Local).
 { "id": "uuid", "name": "enem" }
 ```
 
-### `GET /tags` — **Autenticado**
+### `GET /tags` — **Autenticado** (paginado)
 
-**Saída (`data`)** — `TagResponse[]`
+**Entrada (query)** — `page`, `limit` (opcionais)
 
-### `GET /tags/questions/:questionId` — **Autenticado**
+**Saída (`data`)** — resposta paginada de `TagResponse`
 
-**Saída (`data`)** — `TagResponse[]`
+### `GET /tags/questions/:questionId` — **Autenticado** (paginado)
 
-### `GET /tags/groups/:groupId` — **Autenticado**
+**Entrada (query)** — `page`, `limit` (opcionais)
 
-**Saída (`data`)** — `TagResponse[]`
+**Saída (`data`)** — resposta paginada de `TagResponse`
+
+### `GET /tags/groups/:groupId` — **Autenticado** (paginado)
+
+**Entrada (query)** — `page`, `limit` (opcionais)
+
+**Saída (`data`)** — resposta paginada de `TagResponse`
 
 ### `GET /tags/:id` — **Autenticado**
 
@@ -495,11 +537,17 @@ Substitui todas as tags da questão.
 }
 ```
 
-### `GET /simulations?groupId=` — **Autenticado**
+### `GET /simulations` — **Autenticado** (paginado)
 
-**Entrada (query)** — `groupId`: UUID (obrigatório)
+**Entrada (query)**
 
-**Saída (`data`)** — `SimulationResponse[]`
+| Parâmetro | Tipo | Obrigatório |
+|-----------|------|-------------|
+| `groupId` | UUID | sim |
+| `page` | int | não (default `1`) |
+| `limit` | int | não (default `20`, max `100`) |
+
+**Saída (`data`)** — resposta paginada de `SimulationResponse`
 
 ### `GET /simulations/:id` — **Autenticado**
 
@@ -623,30 +671,48 @@ Retorna tentativa em andamento (`SimulationAttemptResponse`) ou resultado final 
 
 **Saída (`data`)** — `FlashcardResponse`
 
-### `GET /flashcards/pending?groupId=` — **Autenticado**
+### `GET /flashcards/pending` — **Autenticado** (paginado)
 
 Cards pendentes de revisão (somente frente, sem `backContent`).
 
-**Entrada (query)** — `groupId`: UUID (opcional)
+**Entrada (query)** — todos opcionais
 
-**Saída (`data`)** — `FlashcardStudyResponse[]`
+| Parâmetro | Tipo |
+|-----------|------|
+| `groupId` | UUID |
+| `page` | int (default `1`) |
+| `limit` | int (default `20`, max `100`) |
+
+**Saída (`data`)** — resposta paginada de `FlashcardStudyResponse`
 
 ```json
-[
-  {
-    "id": "uuid",
-    "groupId": "uuid",
-    "frontContent": "...",
-    "difficulty": 2
-  }
-]
+{
+  "items": [
+    {
+      "id": "uuid",
+      "groupId": "uuid",
+      "frontContent": "...",
+      "difficulty": 2
+    }
+  ],
+  "total": 5,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 1
+}
 ```
 
-### `GET /flashcards?groupId=` — **Autenticado**
+### `GET /flashcards` — **Autenticado** (paginado)
 
-**Entrada (query)** — `groupId`: UUID (obrigatório)
+**Entrada (query)**
 
-**Saída (`data`)** — `FlashcardResponse[]`
+| Parâmetro | Tipo | Obrigatório |
+|-----------|------|-------------|
+| `groupId` | UUID | sim |
+| `page` | int | não |
+| `limit` | int | não |
+
+**Saída (`data`)** — resposta paginada de `FlashcardResponse`
 
 ### `GET /flashcards/:id` — **Autenticado**
 
@@ -713,9 +779,11 @@ Cards pendentes de revisão (somente frente, sem `backContent`).
 }
 ```
 
-### `GET /study-plans` — Listar planos do usuário
+### `GET /study-plans` — Listar planos do usuário (paginado)
 
-**Saída (`data`)** — `StudyPlanResponse[]`
+**Entrada (query)** — `page`, `limit` (opcionais)
+
+**Saída (`data`)** — resposta paginada de `StudyPlanResponse`
 
 ### `GET /study-plans/:id` — Detalhe com itens e progresso
 
@@ -804,13 +872,23 @@ Cards pendentes de revisão (somente frente, sem `backContent`).
 
 **Saída (`data`)** — `ExamResponse` (com `sections`, `questionIds`, `totalQuestions`)
 
-### `GET /exams?groupId=` — **Autenticado**
+### `GET /exams` — **Autenticado** (paginado)
 
-**Saída (`data`)** — `ExamResponse[]`
+**Entrada (query)**
 
-### `GET /exams/attempts/me` — **Autenticado**
+| Parâmetro | Tipo | Obrigatório |
+|-----------|------|-------------|
+| `groupId` | UUID | sim |
+| `page` | int | não |
+| `limit` | int | não |
 
-**Saída (`data`)** — `ExamAttemptResponse[]`
+**Saída (`data`)** — resposta paginada de `ExamResponse`
+
+### `GET /exams/attempts/me` — **Autenticado** (paginado)
+
+**Entrada (query)** — `page`, `limit` (opcionais)
+
+**Saída (`data`)** — resposta paginada de `ExamAttemptResponse`
 
 ### `GET /exams/attempts/:attemptId` — **Autenticado**
 
@@ -1066,11 +1144,13 @@ Igual ao upload de prova; `type`: `study_plan`.
 { "studyPlanId": "uuid" }
 ```
 
-### `GET /pdf-parser/jobs` — **Autenticado**
+### `GET /pdf-parser/jobs` — **Autenticado** (paginado)
 
 Lista jobs de importação do usuário logado.
 
-**Saída (`data`)** — `ImportJobResponse[]`
+**Entrada (query)** — `page`, `limit` (opcionais)
+
+**Saída (`data`)** — resposta paginada de `ImportJobResponse`
 
 ---
 
@@ -1215,4 +1295,4 @@ Sincroniza uma matéria (ex.: `Direito_Penal`).
 
 ---
 
-*Documento gerado a partir dos controllers em `src/modules/*/presentation/controllers`. Para contratos interativos, use o Swagger em `/api`.*
+*Documento gerado a partir dos controllers em `src/modules/*/presentation/controllers`. Para contratos interativos, use o Swagger em `/api/docs`.*

@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { TagEntity } from '../entities/tag.entity';
 
 export abstract class TagsRepository {
@@ -7,7 +8,9 @@ export abstract class TagsRepository {
 
   abstract findByName(name: string): Promise<TagEntity | null>;
 
-  abstract findMany(): Promise<TagEntity[]>;
+  abstract findMany(pagination: PaginationParams): Promise<TagEntity[]>;
+
+  abstract count(): Promise<number>;
 
   abstract delete(id: string): Promise<void>;
 
@@ -27,9 +30,23 @@ export abstract class TagsRepository {
 
   abstract findNamesByGroupId(groupId: string): Promise<string[]>;
 
-  abstract findByQuestionId(questionId: string): Promise<TagEntity[]>;
+  abstract findAllByQuestionId(questionId: string): Promise<TagEntity[]>;
 
-  abstract findByGroupId(groupId: string): Promise<TagEntity[]>;
+  abstract findByQuestionId(
+    questionId: string,
+    pagination: PaginationParams,
+  ): Promise<TagEntity[]>;
+
+  abstract countByQuestionId(questionId: string): Promise<number>;
+
+  abstract findAllByGroupId(groupId: string): Promise<TagEntity[]>;
+
+  abstract findByGroupId(
+    groupId: string,
+    pagination: PaginationParams,
+  ): Promise<TagEntity[]>;
+
+  abstract countByGroupId(groupId: string): Promise<number>;
 }
 
 export const TAGS_REPOSITORY = Symbol('TAGS_REPOSITORY');

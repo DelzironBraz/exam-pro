@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { QuestionEntity } from '../entities/question.entity';
 import { DifficultyLevel } from '../enums/difficulty-level.enum';
 
@@ -18,7 +19,10 @@ export abstract class QuestionsRepository {
 
   abstract delete(id: string): Promise<void>;
 
-  abstract findMany(filters: QuestionFilters): Promise<QuestionEntity[]>;
+  abstract findMany(
+    filters: QuestionFilters,
+    pagination: PaginationParams,
+  ): Promise<QuestionEntity[]>;
 
   abstract count(filters: QuestionFilters): Promise<number>;
 }

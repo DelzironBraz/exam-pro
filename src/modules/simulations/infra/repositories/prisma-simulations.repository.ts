@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { SimulationEntity } from '../../domain/entities/simulation.entity';
@@ -52,12 +54,22 @@ export class PrismaSimulationsRepository
     await this.prisma.simulation.delete({ where: { id } });
   }
 
-  async findManyByGroup(groupId: string): Promise<SimulationEntity[]> {
+  async findManyByGroup(
+    groupId: string,
+    pagination: PaginationParams,
+  ): Promise<SimulationEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const simulations = await this.prisma.simulation.findMany({
       where: { groupId },
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
     return simulations.map(SimulationMapper.toDomain);
+  }
+
+  async countByGroup(groupId: string): Promise<number> {
+    return this.prisma.simulation.count({ where: { groupId } });
   }
 
   async setQuestions(simulationId: string, questionIds: string[]): Promise<void> {

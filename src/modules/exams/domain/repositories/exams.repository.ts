@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { ExamEntity } from '../entities/exam.entity';
 
 export interface ExamQuestionLink {
@@ -11,7 +12,12 @@ export abstract class ExamsRepository {
 
   abstract findById(id: string): Promise<ExamEntity | null>;
 
-  abstract findManyByGroup(groupId: string): Promise<ExamEntity[]>;
+  abstract findManyByGroup(
+    groupId: string,
+    pagination: PaginationParams,
+  ): Promise<ExamEntity[]>;
+
+  abstract countByGroup(groupId: string): Promise<number>;
 
   abstract findByGroupAndTitle(groupId: string, title: string): Promise<ExamEntity | null>;
 

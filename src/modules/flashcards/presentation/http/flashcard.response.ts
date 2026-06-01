@@ -42,6 +42,10 @@ export class FlashcardStudyResponse {
     this.difficulty = flashcard.difficulty;
   }
 
+  static from(flashcard: FlashcardEntity): FlashcardStudyResponse {
+    return new FlashcardStudyResponse(flashcard);
+  }
+
   static fromList(flashcards: FlashcardEntity[]): FlashcardStudyResponse[] {
     return flashcards.map((card) => new FlashcardStudyResponse(card));
   }

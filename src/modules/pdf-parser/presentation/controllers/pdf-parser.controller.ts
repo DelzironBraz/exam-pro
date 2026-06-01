@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -13,12 +14,14 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { randomUUID } from 'crypto';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { JwtPayload } from '../../../auth/domain/entities/jwt-payload.entity';
 import { AdminGuard } from '../../../auth/presentation/guards/admin.guard';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
+import { ListImportJobsQueryDto } from '../../application/dto/list-import-jobs-query.dto';
 import { ApproveParsedExamDto } from '../../application/dto/approve-parsed-exam.dto';
 import { ApproveParsedStudyPlanDto } from '../../application/dto/approve-parsed-study-plan.dto';
 import { ApproveParsedExamUseCase } from '../../application/use-cases/approve-parsed-exam.use-case';
@@ -182,10 +185,16 @@ export class PdfParserController {
 
   @Get('jobs')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List import jobs for current user' })
-  async listJobs(@CurrentUser() user: JwtPayload) {
-    const jobs = await this.listImportJobsUseCase.execute(user.sub);
-    return ImportJobResponse.fromList(jobs);
+  @ApiOperation({ summary: 'List import jobs for current user (paginated)' })
+  async listJobs(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: ListImportJobsQueryDto,
+  ) {
+    const result = await this.listImportJobsUseCase.execute({
+      userId: user.sub,
+      ...query,
+    });
+    return new PaginatedResponse(result, ImportJobResponse.fromEntity);
   }
 
   private assertPdfFile(file: UploadedPdfFile | undefined): asserts file is UploadedPdfFile {

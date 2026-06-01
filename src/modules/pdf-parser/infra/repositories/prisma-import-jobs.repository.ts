@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { ImportJobEntity } from '../../domain/entities/import-job.entity';
@@ -37,12 +39,22 @@ export class PrismaImportJobsRepository
     return job ? ImportJobMapper.toDomain(job) : null;
   }
 
-  async findByUser(uploadedBy: string): Promise<ImportJobEntity[]> {
+  async findByUser(
+    uploadedBy: string,
+    pagination: PaginationParams,
+  ): Promise<ImportJobEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const jobs = await this.prisma.importJob.findMany({
       where: { uploadedBy },
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
     return jobs.map(ImportJobMapper.toDomain);
+  }
+
+  async countByUser(uploadedBy: string): Promise<number> {
+    return this.prisma.importJob.count({ where: { uploadedBy } });
   }
 
   async updateStatus(id: string, status: ImportStatus, errorMessage?: string): Promise<void> {

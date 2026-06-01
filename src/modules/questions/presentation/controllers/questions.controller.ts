@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { JwtPayload } from '../../../auth/domain/entities/jwt-payload.entity';
@@ -28,7 +29,6 @@ import { GetQuestionUseCase } from '../../application/use-cases/get-question.use
 import { ListQuestionsUseCase } from '../../application/use-cases/list-questions.use-case';
 import { UpdateQuestionUseCase } from '../../application/use-cases/update-question.use-case';
 import {
-  ListQuestionsResponse,
   QuestionResponse,
 } from '../http/question.response';
 
@@ -69,10 +69,10 @@ export class QuestionsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List questions (authenticated)' })
+  @ApiOperation({ summary: 'List questions (authenticated, paginated)' })
   async findAll(@Query() query: ListQuestionsQueryDto) {
-    const { items, total } = await this.listQuestionsUseCase.execute(query);
-    return new ListQuestionsResponse(items, total);
+    const result = await this.listQuestionsUseCase.execute(query);
+    return new PaginatedResponse(result, QuestionResponse.fromSummary);
   }
 
   @Get(':id')

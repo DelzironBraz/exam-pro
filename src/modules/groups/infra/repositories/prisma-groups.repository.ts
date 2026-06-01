@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { GroupEntity } from '../../domain/entities/group.entity';
@@ -44,16 +46,32 @@ export class PrismaGroupsRepository
     return group ? GroupMapper.toDomain(group) : null;
   }
 
-  async findMany(filters?: FindGroupsFilters): Promise<GroupEntity[]> {
+  async findMany(
+    filters: FindGroupsFilters | undefined,
+    pagination: PaginationParams,
+  ): Promise<GroupEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const groups = await this.prisma.group.findMany({
-      where: {
-        type: filters?.type,
-        visibility: filters?.visibility,
-        ownerId: filters?.ownerId,
-      },
+      where: this.buildWhere(filters),
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
     return groups.map(GroupMapper.toDomain);
+  }
+
+  async count(filters?: FindGroupsFilters): Promise<number> {
+    return this.prisma.group.count({
+      where: this.buildWhere(filters),
+    });
+  }
+
+  private buildWhere(filters?: FindGroupsFilters) {
+    return {
+      type: filters?.type,
+      visibility: filters?.visibility,
+      ownerId: filters?.ownerId,
+    };
   }
 
   async update(group: GroupEntity): Promise<GroupEntity> {

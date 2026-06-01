@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { GroupEntity } from '../entities/group.entity';
 import { GroupType } from '../enums/group-type.enum';
 import { GroupVisibility } from '../enums/group-visibility.enum';
@@ -15,7 +16,12 @@ export abstract class GroupsRepository {
 
   abstract findBySlug(slug: string): Promise<GroupEntity | null>;
 
-  abstract findMany(filters?: FindGroupsFilters): Promise<GroupEntity[]>;
+  abstract findMany(
+    filters: FindGroupsFilters | undefined,
+    pagination: PaginationParams,
+  ): Promise<GroupEntity[]>;
+
+  abstract count(filters?: FindGroupsFilters): Promise<number>;
 
   abstract update(group: GroupEntity): Promise<GroupEntity>;
 

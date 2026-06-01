@@ -7,14 +7,17 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { AdminGuard } from '../../../auth/presentation/guards/admin.guard';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
 import { CreateUserDto } from '../../application/dto/create-user.dto';
+import { ListUsersQueryDto } from '../../application/dto/list-users-query.dto';
 import { UpdateUserDto } from '../../application/dto/update-user.dto';
 import { CreateUserUseCase } from '../../application/use-cases/create-user.use-case';
 import { DeleteUserUseCase } from '../../application/use-cases/delete-user.use-case';
@@ -45,10 +48,10 @@ export class UsersController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all users (admin only)' })
-  async findAll() {
-    const users = await this.getUsersUseCase.execute();
-    return UserResponse.fromList(users);
+  @ApiOperation({ summary: 'List users (admin only, paginated)' })
+  async findAll(@Query() query: ListUsersQueryDto) {
+    const result = await this.getUsersUseCase.execute(query);
+    return new PaginatedResponse(result, UserResponse.from);
   }
 
   @Get(':id')

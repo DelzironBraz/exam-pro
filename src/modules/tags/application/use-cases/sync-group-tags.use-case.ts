@@ -29,6 +29,6 @@ export class SyncGroupTagsUseCase {
     }
 
     await this.tagsRepository.syncGroupTags(input.groupId, input.tagNames);
-    return this.tagsRepository.findByGroupId(input.groupId);
+    return this.tagsRepository.findAllByGroupId(input.groupId);
   }
 }

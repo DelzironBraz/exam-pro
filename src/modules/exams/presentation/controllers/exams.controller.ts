@@ -11,12 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { JwtPayload } from '../../../auth/domain/entities/jwt-payload.entity';
 import { AdminGuard } from '../../../auth/presentation/guards/admin.guard';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
+import { ListExamAttemptsQueryDto } from '../../application/dto/list-exam-attempts-query.dto';
+import { ListExamsQueryDto } from '../../application/dto/list-exams-query.dto';
 import { AddExamSectionDto } from '../../application/dto/add-exam-section.dto';
 import { CreateExamDto } from '../../application/dto/create-exam.dto';
 import { FinishExamDto } from '../../application/dto/finish-exam.dto';
@@ -72,18 +75,24 @@ export class ExamsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List exams by group' })
-  async findByGroup(@Query('groupId', ParseUUIDPipe) groupId: string) {
-    const exams = await this.listExamsByGroupUseCase.execute(groupId);
-    return ExamResponse.fromList(exams);
+  @ApiOperation({ summary: 'List exams by group (paginated)' })
+  async findByGroup(@Query() query: ListExamsQueryDto) {
+    const result = await this.listExamsByGroupUseCase.execute(query);
+    return new PaginatedResponse(result, ExamResponse.from);
   }
 
   @Get('attempts/me')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List current user exam attempts' })
-  async myAttempts(@CurrentUser() user: JwtPayload) {
-    const attempts = await this.listUserExamAttemptsUseCase.execute(user.sub);
-    return attempts.map((a) => new ExamAttemptResponse(a));
+  @ApiOperation({ summary: 'List current user exam attempts (paginated)' })
+  async myAttempts(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: ListExamAttemptsQueryDto,
+  ) {
+    const result = await this.listUserExamAttemptsUseCase.execute({
+      userId: user.sub,
+      ...query,
+    });
+    return new PaginatedResponse(result, (attempt) => new ExamAttemptResponse(attempt));
   }
 
   @Get('attempts/:attemptId')

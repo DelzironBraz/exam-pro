@@ -1,4 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { PaginatedResult } from '../../../../shared/application/types/pagination.types';
+import { paginateInMemory } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { FlashcardEntity } from '../../domain/entities/flashcard.entity';
@@ -33,7 +36,10 @@ export class PrismaFlashcardReviewsRepository
     });
   }
 
-  async findPendingReviews(filters: FindPendingReviewsFilters): Promise<FlashcardEntity[]> {
+  async findPendingReviews(
+    filters: FindPendingReviewsFilters,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<FlashcardEntity>> {
     const flashcards = await this.prisma.flashcard.findMany({
       where: { groupId: filters.groupId },
       include: {
@@ -48,9 +54,11 @@ export class PrismaFlashcardReviewsRepository
 
     const now = Date.now();
 
-    return flashcards
+    const pending = flashcards
       .filter((card) => this.isPending(card.reviews[0], now))
       .map((card) => FlashcardMapper.toDomain(card));
+
+    return paginateInMemory(pending, pagination);
   }
 
   private isPending(

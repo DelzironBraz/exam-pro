@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { ExamAttemptEntity } from '../../domain/entities/exam-attempt.entity';
@@ -52,12 +54,22 @@ export class PrismaExamAttemptsRepository
     return ExamAttemptMapper.toDomain(updated);
   }
 
-  async findByUser(userId: string): Promise<ExamAttemptEntity[]> {
+  async findByUser(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<ExamAttemptEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const attempts = await this.prisma.examAttempt.findMany({
       where: { userId },
       orderBy: { startedAt: 'desc' },
+      skip,
+      take,
     });
     return attempts.map(ExamAttemptMapper.toDomain);
+  }
+
+  async countByUser(userId: string): Promise<number> {
+    return this.prisma.examAttempt.count({ where: { userId } });
   }
 
   async findByUserAndExam(userId: string, examId: string): Promise<ExamAttemptEntity[]> {

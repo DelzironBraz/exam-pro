@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { normalizeTagName } from '../../application/utils/normalize-tag-name.util';
@@ -42,11 +44,18 @@ export class PrismaTagsRepository
     return tag ? TagMapper.toDomain(tag) : null;
   }
 
-  async findMany(): Promise<TagEntity[]> {
+  async findMany(pagination: PaginationParams): Promise<TagEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const tags = await this.prisma.tag.findMany({
       orderBy: { name: 'asc' },
+      skip,
+      take,
     });
     return tags.map(TagMapper.toDomain);
+  }
+
+  async count(): Promise<number> {
+    return this.prisma.tag.count();
   }
 
   async delete(id: string): Promise<void> {
@@ -126,16 +135,16 @@ export class PrismaTagsRepository
   }
 
   async findNamesByQuestionId(questionId: string): Promise<string[]> {
-    const tags = await this.findByQuestionId(questionId);
+    const tags = await this.findAllByQuestionId(questionId);
     return tags.map((tag) => tag.name);
   }
 
   async findNamesByGroupId(groupId: string): Promise<string[]> {
-    const tags = await this.findByGroupId(groupId);
+    const tags = await this.findAllByGroupId(groupId);
     return tags.map((tag) => tag.name);
   }
 
-  async findByQuestionId(questionId: string): Promise<TagEntity[]> {
+  async findAllByQuestionId(questionId: string): Promise<TagEntity[]> {
     const links = await this.prisma.questionTag.findMany({
       where: { questionId },
       include: { tag: true },
@@ -144,13 +153,51 @@ export class PrismaTagsRepository
     return links.map((link) => TagMapper.toDomain(link.tag));
   }
 
-  async findByGroupId(groupId: string): Promise<TagEntity[]> {
+  async findByQuestionId(
+    questionId: string,
+    pagination: PaginationParams,
+  ): Promise<TagEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
+    const links = await this.prisma.questionTag.findMany({
+      where: { questionId },
+      include: { tag: true },
+      orderBy: { tag: { name: 'asc' } },
+      skip,
+      take,
+    });
+    return links.map((link) => TagMapper.toDomain(link.tag));
+  }
+
+  async countByQuestionId(questionId: string): Promise<number> {
+    return this.prisma.questionTag.count({ where: { questionId } });
+  }
+
+  async findAllByGroupId(groupId: string): Promise<TagEntity[]> {
     const links = await this.prisma.groupTag.findMany({
       where: { groupId },
       include: { tag: true },
       orderBy: { tag: { name: 'asc' } },
     });
     return links.map((link) => TagMapper.toDomain(link.tag));
+  }
+
+  async findByGroupId(
+    groupId: string,
+    pagination: PaginationParams,
+  ): Promise<TagEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
+    const links = await this.prisma.groupTag.findMany({
+      where: { groupId },
+      include: { tag: true },
+      orderBy: { tag: { name: 'asc' } },
+      skip,
+      take,
+    });
+    return links.map((link) => TagMapper.toDomain(link.tag));
+  }
+
+  async countByGroupId(groupId: string): Promise<number> {
+    return this.prisma.groupTag.count({ where: { groupId } });
   }
 
   private normalizeTagNames(tagNames: string[]): string[] {

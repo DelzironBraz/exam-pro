@@ -10,12 +10,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { JwtPayload } from '../../../auth/domain/entities/jwt-payload.entity';
 import { AdminGuard } from '../../../auth/presentation/guards/admin.guard';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
+import { ListSimulationsQueryDto } from '../../application/dto/list-simulations-query.dto';
 import { CreateSimulationDto } from '../../application/dto/create-simulation.dto';
 import { FinishSimulationDto } from '../../application/dto/finish-simulation.dto';
 import { SubmitSimulationAnswerDto } from '../../application/dto/submit-simulation-answer.dto';
@@ -66,10 +68,10 @@ export class SimulationsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List simulations by group' })
-  async findByGroup(@Query('groupId', ParseUUIDPipe) groupId: string) {
-    const simulations = await this.listSimulationsByGroupUseCase.execute(groupId);
-    return SimulationResponse.fromList(simulations);
+  @ApiOperation({ summary: 'List simulations by group (paginated)' })
+  async findByGroup(@Query() query: ListSimulationsQueryDto) {
+    const result = await this.listSimulationsByGroupUseCase.execute(query);
+    return new PaginatedResponse(result, SimulationResponse.from);
   }
 
   @Get('attempts/:attemptId')

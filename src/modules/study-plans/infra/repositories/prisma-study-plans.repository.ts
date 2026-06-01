@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { StudyPlanEntity } from '../../domain/entities/study-plan.entity';
@@ -32,12 +34,22 @@ export class PrismaStudyPlansRepository
     return plan ? StudyPlanMapper.toDomain(plan) : null;
   }
 
-  async findByUser(userId: string): Promise<StudyPlanEntity[]> {
+  async findByUser(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<StudyPlanEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const plans = await this.prisma.studyPlan.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
     return plans.map(StudyPlanMapper.toDomain);
+  }
+
+  async countByUser(userId: string): Promise<number> {
+    return this.prisma.studyPlan.count({ where: { userId } });
   }
 
   async update(plan: StudyPlanEntity): Promise<StudyPlanEntity> {

@@ -1,3 +1,8 @@
+import { PaginatedResult } from '../../../../shared/application/types/pagination.types';
+import {
+  buildPaginatedResult,
+  resolvePagination,
+} from '../../../../shared/application/utils/pagination.util';
 import { Logger } from '../../../../shared/domain/logger/logger.interface';
 import { QuestionEntity } from '../../domain/entities/question.entity';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
@@ -12,11 +17,8 @@ export interface ListQuestionsInput {
   topic?: string;
   difficulty?: DifficultyLevel;
   tags?: string[];
-}
-
-export interface ListQuestionsOutput {
-  items: QuestionEntity[];
-  total: number;
+  page?: number;
+  limit?: number;
 }
 
 export class ListQuestionsUseCase {
@@ -25,9 +27,10 @@ export class ListQuestionsUseCase {
     private readonly questionsRepository: QuestionsRepository,
   ) {}
 
-  async execute(input?: ListQuestionsInput): Promise<ListQuestionsOutput> {
+  async execute(input?: ListQuestionsInput): Promise<PaginatedResult<QuestionEntity>> {
     this.logger.log(ListQuestionsUseCase.name, 'Listing questions');
 
+    const pagination = resolvePagination(input);
     const filters: QuestionFilters = {
       groupId: input?.groupId,
       discipline: input?.discipline,
@@ -37,10 +40,10 @@ export class ListQuestionsUseCase {
     };
 
     const [items, total] = await Promise.all([
-      this.questionsRepository.findMany(filters),
+      this.questionsRepository.findMany(filters, pagination),
       this.questionsRepository.count(filters),
     ]);
 
-    return { items, total };
+    return buildPaginatedResult(items, total, pagination);
   }
 }

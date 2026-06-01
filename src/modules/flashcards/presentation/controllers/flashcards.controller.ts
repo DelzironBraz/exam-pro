@@ -11,12 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { JwtPayload } from '../../../auth/domain/entities/jwt-payload.entity';
 import { AdminGuard } from '../../../auth/presentation/guards/admin.guard';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
+import { ListFlashcardsQueryDto } from '../../application/dto/list-flashcards-query.dto';
+import { ListPendingFlashcardsQueryDto } from '../../application/dto/list-pending-flashcards-query.dto';
 import { CreateFlashcardDto } from '../../application/dto/create-flashcard.dto';
 import { ReviewFlashcardDto } from '../../application/dto/review-flashcard.dto';
 import { UpdateFlashcardDto } from '../../application/dto/update-flashcard.dto';
@@ -64,25 +67,25 @@ export class FlashcardsController {
   @Get('pending')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'Get flashcards pending review (front only, no back content)',
+    summary: 'Get flashcards pending review (front only, no back content, paginated)',
   })
   async getPending(
     @CurrentUser() user: JwtPayload,
-    @Query('groupId') groupId?: string,
+    @Query() query: ListPendingFlashcardsQueryDto,
   ) {
-    const pending = await this.getPendingFlashcardsUseCase.execute({
+    const result = await this.getPendingFlashcardsUseCase.execute({
       userId: user.sub,
-      groupId,
+      ...query,
     });
-    return FlashcardStudyResponse.fromList(pending);
+    return new PaginatedResponse(result, FlashcardStudyResponse.from);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List flashcards by group' })
-  async findByGroup(@Query('groupId', ParseUUIDPipe) groupId: string) {
-    const flashcards = await this.listFlashcardsByGroupUseCase.execute(groupId);
-    return FlashcardResponse.fromList(flashcards);
+  @ApiOperation({ summary: 'List flashcards by group (paginated)' })
+  async findByGroup(@Query() query: ListFlashcardsQueryDto) {
+    const result = await this.listFlashcardsByGroupUseCase.execute(query);
+    return new PaginatedResponse(result, FlashcardResponse.from);
   }
 
   @Get(':id')

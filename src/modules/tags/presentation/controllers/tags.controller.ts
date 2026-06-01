@@ -7,15 +7,18 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags as ApiSwaggerTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
 import { AdminGuard } from '../../../auth/presentation/guards/admin.guard';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
 import { AttachTagToGroupDto, AttachTagToQuestionDto } from '../../application/dto/attach-tag.dto';
 import { CreateTagDto } from '../../application/dto/create-tag.dto';
+import { ListTagsQueryDto } from '../../application/dto/list-tags-query.dto';
 import { SyncTagsDto } from '../../application/dto/sync-tags.dto';
 import { AttachTagToGroupUseCase } from '../../application/use-cases/attach-tag-to-group.use-case';
 import { AttachTagToQuestionUseCase } from '../../application/use-cases/attach-tag-to-question.use-case';
@@ -61,26 +64,38 @@ export class TagsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List all tags (authenticated)' })
-  async findAll() {
-    const tags = await this.listTagsUseCase.execute();
-    return TagResponse.fromList(tags);
+  @ApiOperation({ summary: 'List tags (authenticated, paginated)' })
+  async findAll(@Query() query: ListTagsQueryDto) {
+    const result = await this.listTagsUseCase.execute(query);
+    return new PaginatedResponse(result, TagResponse.from);
   }
 
   @Get('questions/:questionId')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List tags linked to a question' })
-  async findByQuestion(@Param('questionId', ParseUUIDPipe) questionId: string) {
-    const tags = await this.listQuestionTagsUseCase.execute(questionId);
-    return TagResponse.fromList(tags);
+  @ApiOperation({ summary: 'List tags linked to a question (paginated)' })
+  async findByQuestion(
+    @Param('questionId', ParseUUIDPipe) questionId: string,
+    @Query() query: ListTagsQueryDto,
+  ) {
+    const result = await this.listQuestionTagsUseCase.execute({
+      questionId,
+      ...query,
+    });
+    return new PaginatedResponse(result, TagResponse.from);
   }
 
   @Get('groups/:groupId')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List tags linked to a group' })
-  async findByGroup(@Param('groupId', ParseUUIDPipe) groupId: string) {
-    const tags = await this.listGroupTagsUseCase.execute(groupId);
-    return TagResponse.fromList(tags);
+  @ApiOperation({ summary: 'List tags linked to a group (paginated)' })
+  async findByGroup(
+    @Param('groupId', ParseUUIDPipe) groupId: string,
+    @Query() query: ListTagsQueryDto,
+  ) {
+    const result = await this.listGroupTagsUseCase.execute({
+      groupId,
+      ...query,
+    });
+    return new PaginatedResponse(result, TagResponse.from);
   }
 
   @Get(':id')
@@ -142,7 +157,7 @@ export class TagsController {
       tagId: dto.tagId,
       questionId,
     });
-    const tags = await this.listQuestionTagsUseCase.execute(questionId);
+    const tags = await this.listQuestionTagsUseCase.executeAll(questionId);
     return TagResponse.fromList(tags);
   }
 
@@ -170,7 +185,7 @@ export class TagsController {
       tagId: dto.tagId,
       groupId,
     });
-    const tags = await this.listGroupTagsUseCase.execute(groupId);
+    const tags = await this.listGroupTagsUseCase.executeAll(groupId);
     return TagResponse.fromList(tags);
   }
 

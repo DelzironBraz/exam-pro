@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { StudyPlanEntity } from '../entities/study-plan.entity';
 
 export abstract class StudyPlansRepository {
@@ -5,7 +6,12 @@ export abstract class StudyPlansRepository {
 
   abstract findById(id: string): Promise<StudyPlanEntity | null>;
 
-  abstract findByUser(userId: string): Promise<StudyPlanEntity[]>;
+  abstract findByUser(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<StudyPlanEntity[]>;
+
+  abstract countByUser(userId: string): Promise<number>;
 
   abstract update(plan: StudyPlanEntity): Promise<StudyPlanEntity>;
 

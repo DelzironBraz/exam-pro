@@ -7,12 +7,15 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { JwtPayload } from '../../../auth/domain/entities/jwt-payload.entity';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
+import { ListStudyPlansQueryDto } from '../../application/dto/list-study-plans-query.dto';
 import { AddPlanItemDto } from '../../application/dto/add-plan-item.dto';
 import { CreateStudyPlanDto } from '../../application/dto/create-study-plan.dto';
 import { UpdateStudyPlanDto } from '../../application/dto/update-study-plan.dto';
@@ -57,10 +60,16 @@ export class StudyPlansController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List study plans of the current user' })
-  async findAll(@CurrentUser() user: JwtPayload) {
-    const plans = await this.listStudyPlansUseCase.execute(user.sub);
-    return StudyPlanResponse.fromList(plans);
+  @ApiOperation({ summary: 'List study plans of the current user (paginated)' })
+  async findAll(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: ListStudyPlansQueryDto,
+  ) {
+    const result = await this.listStudyPlansUseCase.execute({
+      userId: user.sub,
+      ...query,
+    });
+    return new PaginatedResponse(result, StudyPlanResponse.from);
   }
 
   @Post('items/:itemId/complete')

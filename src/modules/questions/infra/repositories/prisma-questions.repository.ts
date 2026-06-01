@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { Prisma } from '../../../../generated/prisma';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
@@ -58,10 +60,16 @@ export class PrismaQuestionsRepository
     await this.prisma.question.delete({ where: { id } });
   }
 
-  async findMany(filters: QuestionFilters): Promise<QuestionEntity[]> {
+  async findMany(
+    filters: QuestionFilters,
+    pagination: PaginationParams,
+  ): Promise<QuestionEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const questions = await this.prisma.question.findMany({
       where: this.buildWhere(filters),
       orderBy: { createdAt: 'desc' },
+      skip,
+      take,
     });
     return questions.map(QuestionMapper.toDomain);
   }

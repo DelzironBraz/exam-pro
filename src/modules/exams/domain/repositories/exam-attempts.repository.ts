@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { ExamAttemptEntity } from '../entities/exam-attempt.entity';
 
 export interface FinishExamInput {
@@ -15,7 +16,12 @@ export abstract class ExamAttemptsRepository {
 
   abstract finish(attemptId: string, result: FinishExamInput): Promise<ExamAttemptEntity>;
 
-  abstract findByUser(userId: string): Promise<ExamAttemptEntity[]>;
+  abstract findByUser(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<ExamAttemptEntity[]>;
+
+  abstract countByUser(userId: string): Promise<number>;
 
   abstract findByUserAndExam(userId: string, examId: string): Promise<ExamAttemptEntity[]>;
 }

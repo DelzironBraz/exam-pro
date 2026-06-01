@@ -29,6 +29,6 @@ export class SyncQuestionTagsUseCase {
     }
 
     await this.tagsRepository.syncQuestionTags(input.questionId, input.tagNames);
-    return this.tagsRepository.findByQuestionId(input.questionId);
+    return this.tagsRepository.findAllByQuestionId(input.questionId);
   }
 }

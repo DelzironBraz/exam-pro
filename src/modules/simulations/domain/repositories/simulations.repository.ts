@@ -1,3 +1,4 @@
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
 import { SimulationEntity } from '../entities/simulation.entity';
 
 export abstract class SimulationsRepository {
@@ -9,7 +10,12 @@ export abstract class SimulationsRepository {
 
   abstract delete(id: string): Promise<void>;
 
-  abstract findManyByGroup(groupId: string): Promise<SimulationEntity[]>;
+  abstract findManyByGroup(
+    groupId: string,
+    pagination: PaginationParams,
+  ): Promise<SimulationEntity[]>;
+
+  abstract countByGroup(groupId: string): Promise<number>;
 
   abstract setQuestions(simulationId: string, questionIds: string[]): Promise<void>;
 

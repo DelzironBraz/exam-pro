@@ -1,3 +1,8 @@
+import { PaginatedResult } from '../../../../shared/application/types/pagination.types';
+import {
+  buildPaginatedResult,
+  resolvePagination,
+} from '../../../../shared/application/utils/pagination.util';
 import { Logger } from '../../../../shared/domain/logger/logger.interface';
 import { GroupEntity } from '../../domain/entities/group.entity';
 import { GroupType } from '../../domain/enums/group-type.enum';
@@ -8,6 +13,8 @@ export interface ListGroupsInput {
   type?: GroupType;
   visibility?: GroupVisibility;
   ownerId?: string;
+  page?: number;
+  limit?: number;
 }
 
 export class ListGroupsUseCase {
@@ -16,8 +23,21 @@ export class ListGroupsUseCase {
     private readonly groupsRepository: GroupsRepository,
   ) {}
 
-  async execute(input?: ListGroupsInput): Promise<GroupEntity[]> {
+  async execute(input?: ListGroupsInput): Promise<PaginatedResult<GroupEntity>> {
     this.logger.log(ListGroupsUseCase.name, 'Listing groups');
-    return this.groupsRepository.findMany(input);
+
+    const pagination = resolvePagination(input);
+    const filters = {
+      type: input?.type,
+      visibility: input?.visibility,
+      ownerId: input?.ownerId,
+    };
+
+    const [items, total] = await Promise.all([
+      this.groupsRepository.findMany(filters, pagination),
+      this.groupsRepository.count(filters),
+    ]);
+
+    return buildPaginatedResult(items, total, pagination);
   }
 }

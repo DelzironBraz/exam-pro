@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationParams } from '../../../../shared/application/types/pagination.types';
+import { toPrismaPagination } from '../../../../shared/application/utils/pagination.util';
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { ExamEntity } from '../../domain/entities/exam.entity';
@@ -36,12 +38,22 @@ export class PrismaExamsRepository extends PrismaRepository implements ExamsRepo
     return exam ? ExamMapper.toDomain(exam) : null;
   }
 
-  async findManyByGroup(groupId: string): Promise<ExamEntity[]> {
+  async findManyByGroup(
+    groupId: string,
+    pagination: PaginationParams,
+  ): Promise<ExamEntity[]> {
+    const { skip, take } = toPrismaPagination(pagination);
     const exams = await this.prisma.exam.findMany({
       where: { groupId },
       orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+      skip,
+      take,
     });
     return exams.map(ExamMapper.toDomain);
+  }
+
+  async countByGroup(groupId: string): Promise<number> {
+    return this.prisma.exam.count({ where: { groupId } });
   }
 
   async findByGroupAndTitle(groupId: string, title: string): Promise<ExamEntity | null> {
