@@ -2,7 +2,9 @@ import { AlternativeEntity } from '../../../modules/questions/domain/entities/al
 import { QuestionEntity } from '../../../modules/questions/domain/entities/question.entity';
 
 export interface AssessmentQuestionAnswerState {
-  selectedAlternativeId: string;
+  selectedAlternativeId?: string | null;
+  textAnswer?: string | null;
+  similarityScore?: number | null;
   answeredAt: Date;
 }
 

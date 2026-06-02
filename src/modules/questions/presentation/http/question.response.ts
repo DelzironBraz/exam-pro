@@ -1,6 +1,7 @@
 import { AlternativeEntity } from '../../domain/entities/alternative.entity';
 import { QuestionEntity } from '../../domain/entities/question.entity';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../domain/enums/question-type.enum';
 import { ListQuestionItem } from '../../application/types/list-question-item.type';
 
 export class AlternativeResponse {
@@ -26,6 +27,8 @@ export class QuestionResponse {
   discipline: string | null;
   topic: string | null;
   difficulty: DifficultyLevel;
+  type: QuestionType;
+  referenceAnswer?: string;
   explanation?: string;
   createdBy: string;
   createdAt: Date;
@@ -33,12 +36,7 @@ export class QuestionResponse {
   alternatives?: AlternativeResponse[];
   answers?: AlternativeResponse[];
   completed?: boolean;
-  lastAnswer?: {
-    selectedAlternativeId: string;
-    isCorrect: boolean;
-    answeredAt: Date;
-    correctAlternativeId?: string;
-  };
+  lastAnswer?: ListQuestionItem['lastAnswer'];
 
   constructor(
     question: QuestionEntity,
@@ -47,6 +45,7 @@ export class QuestionResponse {
       alternatives?: AlternativeEntity[];
       revealCorrect?: boolean;
       includeExplanation?: boolean;
+      includeReferenceAnswer?: boolean;
       completed?: boolean;
       lastAnswer?: ListQuestionItem['lastAnswer'];
     },
@@ -57,9 +56,14 @@ export class QuestionResponse {
     this.discipline = question.discipline;
     this.topic = question.topic;
     this.difficulty = question.difficulty;
+    this.type = question.type;
     this.createdBy = question.createdBy;
     this.createdAt = question.createdAt;
     this.tags = options?.tags ?? [];
+
+    if (options?.includeReferenceAnswer && question.referenceAnswer) {
+      this.referenceAnswer = question.referenceAnswer;
+    }
 
     if (options?.includeExplanation && question.explanation) {
       this.explanation = question.explanation;
@@ -88,11 +92,13 @@ export class QuestionResponse {
   }
 
   static fromListItem(item: ListQuestionItem): QuestionResponse {
+    const isDiscursive = item.question.type === QuestionType.DISCURSIVE;
     return new QuestionResponse(item.question, {
       tags: item.tags,
-      alternatives: item.alternatives,
+      alternatives: item.alternatives.length > 0 ? item.alternatives : undefined,
       revealCorrect: item.completed,
-      includeExplanation: item.completed,
+      includeExplanation: item.completed || isDiscursive,
+      includeReferenceAnswer: item.completed || isDiscursive,
       completed: item.completed,
       lastAnswer: item.lastAnswer,
     });
@@ -104,11 +110,13 @@ export class QuestionResponse {
     tags: string[],
     revealCorrect: boolean,
   ): QuestionResponse {
+    const isDiscursive = question.type === QuestionType.DISCURSIVE;
     return new QuestionResponse(question, {
       tags,
-      alternatives,
+      alternatives: alternatives.length > 0 ? alternatives : undefined,
       revealCorrect,
       includeExplanation: revealCorrect,
+      includeReferenceAnswer: revealCorrect || isDiscursive,
     });
   }
 }

@@ -1,6 +1,7 @@
 import { Question as PrismaQuestion } from '../../../../generated/prisma';
 import { QuestionEntity } from '../../domain/entities/question.entity';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../domain/enums/question-type.enum';
 
 export class QuestionMapper {
   static toDomain(record: PrismaQuestion): QuestionEntity {
@@ -11,6 +12,8 @@ export class QuestionMapper {
       record.discipline,
       record.topic,
       record.difficulty as DifficultyLevel,
+      record.type as QuestionType,
+      record.referenceAnswer,
       record.explanation,
       record.createdBy,
       record.createdAt,

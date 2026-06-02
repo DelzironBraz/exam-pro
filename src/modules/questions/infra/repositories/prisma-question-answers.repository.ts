@@ -21,6 +21,8 @@ export class PrismaQuestionAnswersRepository
         userId: answer.userId,
         questionId: answer.questionId,
         selectedAlternativeId: answer.selectedAlternativeId,
+        textAnswer: answer.textAnswer,
+        similarityScore: answer.similarityScore,
         timeSpentSeconds: answer.timeSpentSeconds,
         isCorrect: answer.isCorrect,
         createdAt: answer.createdAt,

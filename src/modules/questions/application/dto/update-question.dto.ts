@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../domain/enums/question-type.enum';
 
 export class UpdateQuestionDto {
   @ApiPropertyOptional()
@@ -24,6 +25,19 @@ export class UpdateQuestionDto {
   @IsOptional()
   @IsEnum(DifficultyLevel)
   difficulty?: DifficultyLevel;
+
+  @ApiPropertyOptional({ enum: QuestionType })
+  @IsOptional()
+  @IsEnum(QuestionType)
+  type?: QuestionType;
+
+  @ApiPropertyOptional({
+    description: 'Gabarito textual para questões discursivas',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  referenceAnswer?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

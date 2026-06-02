@@ -6,6 +6,7 @@ import {
 import { Logger } from '../../../../shared/domain/logger/logger.interface';
 import { TagsRepository } from '../../../tags/domain/repositories/tags.repository';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../domain/enums/question-type.enum';
 import {
   QuestionFilters,
   QuestionsRepository,
@@ -73,9 +74,15 @@ export class ListQuestionsUseCase {
       const lastAnswer = lastAnswerEntity
         ? {
             selectedAlternativeId: lastAnswerEntity.selectedAlternativeId,
+            textAnswer: lastAnswerEntity.textAnswer,
+            similarityScore: lastAnswerEntity.similarityScore,
             isCorrect: lastAnswerEntity.isCorrect,
             answeredAt: lastAnswerEntity.createdAt,
             correctAlternativeId: correctAlternative?.id,
+            referenceAnswer:
+              question.type === QuestionType.DISCURSIVE
+                ? (question.referenceAnswer ?? undefined)
+                : undefined,
           }
         : undefined;
 

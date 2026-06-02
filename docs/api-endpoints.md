@@ -289,6 +289,7 @@ Autentica com e-mail e senha (Passport Local).
   "discipline": "Geografia",
   "topic": "Capitais",
   "difficulty": "medium",
+  "type": "multiple_choice",
   "explanation": "Brasília foi fundada em 1960.",
   "alternatives": [
     { "label": "A", "content": "São Paulo", "isCorrect": false },
@@ -305,8 +306,10 @@ Autentica com e-mail e senha (Passport Local).
 | `discipline` | string (max 120) | não |
 | `topic` | string (max 120) | não |
 | `difficulty` | `easy` \| `medium` \| `hard` | sim |
+| `type` | `multiple_choice` (padrão) \| `discursive` | não |
+| `referenceAnswer` | string | obrigatório se `type=discursive` |
 | `explanation` | string | não |
-| `alternatives` | array (min 2) | sim |
+| `alternatives` | array (min 2) | obrigatório se `multiple_choice`; omitir se `discursive` |
 | `alternatives[].label` | string (max 10) | sim |
 | `alternatives[].content` | string | sim |
 | `alternatives[].isCorrect` | boolean | sim |
@@ -322,6 +325,7 @@ Autentica com e-mail e senha (Passport Local).
   "discipline": "Geografia",
   "topic": "Capitais",
   "difficulty": "medium",
+  "type": "multiple_choice",
   "explanation": "...",
   "createdBy": "uuid",
   "createdAt": "...",
@@ -331,6 +335,9 @@ Autentica com e-mail e senha (Passport Local).
   ]
 }
 ```
+
+> Questões **discursivas** (`type: discursive`) não possuem `alternatives`; o gabarito fica em `referenceAnswer`.  
+> Questões existentes **sem alternativas** foram migradas automaticamente para discursivas.
 
 ### `GET /questions` — **Autenticado** (paginado)
 
@@ -358,6 +365,7 @@ Autentica com e-mail e senha (Passport Local).
       "discipline": "Geografia",
       "topic": "Capitais",
       "difficulty": "medium",
+      "type": "multiple_choice",
       "createdBy": "...",
       "createdAt": "...",
       "tags": ["geografia"],
@@ -386,7 +394,8 @@ Autentica com e-mail e senha (Passport Local).
 
 > A listagem inclui **`answers`** (e `alternatives`, alias) com as opções de resposta para responder direto na UI.  
 > `completed: true` indica que o usuário logado já respondeu a questão (`POST /questions/:id/answer`).  
-> Quando `completed`, cada answer inclui `isCorrect`, `explanation` é retornada e `lastAnswer.correctAlternativeId` traz o gabarito.
+> Quando `completed`, cada answer inclui `isCorrect`, `explanation` é retornada e `lastAnswer.correctAlternativeId` traz o gabarito.  
+> Questões **discursivas** (sem alternativas) sempre retornam `explanation` (resposta-modelo), pois não podem ser respondidas por múltipla escolha.
 
 ### `GET /questions/:id` — **Autenticado**
 
@@ -408,7 +417,7 @@ Autentica com e-mail e senha (Passport Local).
 
 ### `POST /questions/:id/answer` — **Autenticado**
 
-**Entrada (body)**
+**Entrada (body)** — múltipla escolha:
 
 ```json
 {
@@ -417,7 +426,18 @@ Autentica com e-mail e senha (Passport Local).
 }
 ```
 
-**Saída (`data`)**
+**Entrada (body)** — discursiva:
+
+```json
+{
+  "textAnswer": "Brasília é a capital federal do Brasil.",
+  "timeSpentSeconds": 120
+}
+```
+
+> Envie `selectedAlternativeId` **ou** `textAnswer`, conforme o `type` da questão.
+
+**Saída (`data`)** — múltipla escolha:
 
 ```json
 {
@@ -426,6 +446,19 @@ Autentica com e-mail e senha (Passport Local).
   "explanation": "Texto da explicação (se existir)"
 }
 ```
+
+**Saída (`data`)** — discursiva:
+
+```json
+{
+  "isCorrect": true,
+  "similarityScore": 0.91,
+  "referenceAnswer": "Brasília é a capital federal do Brasil.",
+  "explanation": "Texto da explicação (se existir)"
+}
+```
+
+> Respostas discursivas são avaliadas por similaridade textual (sem IA). Score ≥ **0,72** = correto.
 
 ---
 
@@ -626,7 +659,8 @@ Lista questões da simulação para realização, com alternativas (sem gabarito
         "statement": "...",
         "discipline": "Direito",
         "topic": "Penal",
-        "difficulty": "medium"
+        "difficulty": "medium",
+        "type": "multiple_choice"
       },
       "alternatives": [
         { "id": "uuid", "label": "A", "content": "..." }
@@ -682,7 +716,7 @@ Lista questões da simulação para realização, com alternativas (sem gabarito
 
 ### `POST /simulations/attempts/:attemptId/answers` — **Autenticado**
 
-**Entrada (body)**
+**Entrada (body)** — múltipla escolha ou discursiva (`selectedAlternativeId` **ou** `textAnswer`):
 
 ```json
 {
@@ -695,8 +729,10 @@ Lista questões da simulação para realização, com alternativas (sem gabarito
 **Saída (`data`)**
 
 ```json
-{ "isCorrect": true }
+{ "isCorrect": true, "similarityScore": 0.85 }
 ```
+
+> `similarityScore` só é retornado para questões discursivas.
 
 ### `POST /simulations/attempts/:attemptId/finish` — **Autenticado**
 
@@ -1115,12 +1151,12 @@ Lista questões da prova para realização, com alternativas (sem gabarito) em u
 
 ### `POST /exams/attempts/:attemptId/answers` — **Autenticado**
 
-**Entrada (body)** — igual ao simulado: `questionId`, `selectedAlternativeId`, `timeSpentSeconds`
+**Entrada (body)** — igual ao simulado: `questionId`, `timeSpentSeconds` e `selectedAlternativeId` **ou** `textAnswer`
 
 **Saída (`data`)**
 
 ```json
-{ "isCorrect": true }
+{ "isCorrect": true, "similarityScore": 0.85 }
 ```
 
 ### `POST /exams/attempts/:attemptId/finish` — **Autenticado**

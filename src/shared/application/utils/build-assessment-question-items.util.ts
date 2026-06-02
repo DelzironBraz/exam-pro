@@ -10,7 +10,9 @@ export interface QuestionLinkRow {
 
 export interface AttemptAnswerRow {
   questionId: string;
-  selectedAlternativeId: string;
+  selectedAlternativeId?: string | null;
+  textAnswer?: string | null;
+  similarityScore?: number | null;
   answeredAt: Date;
 }
 
@@ -40,6 +42,8 @@ export function buildAssessmentQuestionItems(
       answer: answer
         ? {
             selectedAlternativeId: answer.selectedAlternativeId,
+            textAnswer: answer.textAnswer,
+            similarityScore: answer.similarityScore,
             answeredAt: answer.answeredAt,
           }
         : undefined,

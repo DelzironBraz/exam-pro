@@ -1,6 +1,7 @@
 import { AlternativeEntity } from '../../../modules/questions/domain/entities/alternative.entity';
 import { QuestionEntity } from '../../../modules/questions/domain/entities/question.entity';
 import { DifficultyLevel } from '../../../modules/questions/domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../../modules/questions/domain/enums/question-type.enum';
 import { AssessmentQuestionItem } from '../../application/types/assessment-question-item.type';
 
 class AssessmentAlternativeResponse {
@@ -21,6 +22,7 @@ class AssessmentQuestionDetailResponse {
   discipline: string | null;
   topic: string | null;
   difficulty: DifficultyLevel;
+  type: QuestionType;
 
   constructor(question: QuestionEntity) {
     this.id = question.id;
@@ -28,6 +30,7 @@ class AssessmentQuestionDetailResponse {
     this.discipline = question.discipline;
     this.topic = question.topic;
     this.difficulty = question.difficulty;
+    this.type = question.type;
   }
 }
 
@@ -38,7 +41,9 @@ export class AssessmentQuestionResponse {
   alternatives: AssessmentAlternativeResponse[];
   answers: AssessmentAlternativeResponse[];
   answered: boolean;
-  selectedAlternativeId?: string;
+  selectedAlternativeId?: string | null;
+  textAnswer?: string | null;
+  similarityScore?: number | null;
   answeredAt?: Date;
 
   constructor(item: AssessmentQuestionItem) {
@@ -53,6 +58,8 @@ export class AssessmentQuestionResponse {
 
     if (item.answer) {
       this.selectedAlternativeId = item.answer.selectedAlternativeId;
+      this.textAnswer = item.answer.textAnswer;
+      this.similarityScore = item.answer.similarityScore;
       this.answeredAt = item.answer.answeredAt;
     }
   }

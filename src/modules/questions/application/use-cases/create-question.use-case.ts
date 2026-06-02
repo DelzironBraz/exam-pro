@@ -5,13 +5,13 @@ import { GroupsRepository } from '../../../groups/domain/repositories/groups.rep
 import { AlternativeEntity } from '../../domain/entities/alternative.entity';
 import { QuestionEntity } from '../../domain/entities/question.entity';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../domain/enums/question-type.enum';
 import { AlternativesRepository } from '../../domain/repositories/alternatives.repository';
 import { TagsRepository } from '../../../tags/domain/repositories/tags.repository';
 import { QuestionsRepository } from '../../domain/repositories/questions.repository';
 import {
   AlternativeInput,
-  isDissertativeDiscipline,
-  validateAlternatives,
+  validateQuestionInput,
 } from '../utils/validate-alternatives.util';
 
 export interface CreateQuestionInput {
@@ -20,6 +20,8 @@ export interface CreateQuestionInput {
   discipline?: string;
   topic?: string;
   difficulty: DifficultyLevel;
+  type?: QuestionType;
+  referenceAnswer?: string;
   explanation?: string;
   alternatives: AlternativeInput[];
   tags?: string[];
@@ -39,9 +41,11 @@ export class CreateQuestionUseCase {
   async execute(input: CreateQuestionInput): Promise<QuestionEntity> {
     this.logger.log(CreateQuestionUseCase.name, 'Creating question');
 
-    const allowDissertative = isDissertativeDiscipline(input.discipline);
-    const validationError = validateAlternatives(input.alternatives, {
-      allowDissertative,
+    const type = input.type ?? QuestionType.MULTIPLE_CHOICE;
+    const validationError = validateQuestionInput({
+      type,
+      alternatives: input.alternatives,
+      referenceAnswer: input.referenceAnswer,
     });
     if (validationError) {
       this.exceptionsService.badRequestException({ message: validationError });
@@ -62,6 +66,8 @@ export class CreateQuestionUseCase {
       input.discipline ?? null,
       input.topic ?? null,
       input.difficulty,
+      type,
+      type === QuestionType.DISCURSIVE ? input.referenceAnswer!.trim() : null,
       input.explanation ?? null,
       input.createdBy,
       now,

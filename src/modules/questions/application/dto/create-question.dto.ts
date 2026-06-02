@@ -7,9 +7,11 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  MinLength,
   ValidateNested,
 } from 'class-validator';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../domain/enums/question-type.enum';
 import { CreateAlternativeDto } from './create-alternative.dto';
 
 export class CreateQuestionDto {
@@ -37,6 +39,24 @@ export class CreateQuestionDto {
   @IsEnum(DifficultyLevel)
   difficulty: DifficultyLevel;
 
+  @ApiPropertyOptional({
+    enum: QuestionType,
+    default: QuestionType.MULTIPLE_CHOICE,
+    description: 'multiple_choice (padrão) ou discursive',
+  })
+  @IsOptional()
+  @IsEnum(QuestionType)
+  type?: QuestionType;
+
+  @ApiPropertyOptional({
+    example: 'Brasília é a capital federal do Brasil.',
+    description: 'Gabarito textual obrigatório para questões discursivas',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  referenceAnswer?: string;
+
   @ApiPropertyOptional({ example: 'Brasília foi fundada em 1960.' })
   @IsOptional()
   @IsString()
@@ -44,8 +64,7 @@ export class CreateQuestionDto {
 
   @ApiPropertyOptional({
     type: [CreateAlternativeDto],
-    description:
-      'Obrigatório (mín. 2) para múltipla escolha. Pode ser omitido ou vazio para questões dissertativas (ex.: disciplinas "Direito ...").',
+    description: 'Obrigatório (mín. 2) para múltipla escolha. Deve ser omitido para discursivas.',
   })
   @IsOptional()
   @IsArray()

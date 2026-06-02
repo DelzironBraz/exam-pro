@@ -115,6 +115,8 @@ export class ListSimulationQuestionsUseCase {
         map.set(answer.questionId, {
           questionId: answer.questionId,
           selectedAlternativeId: answer.selectedAlternativeId,
+          textAnswer: answer.textAnswer,
+          similarityScore: answer.similarityScore,
           answeredAt: answer.answeredAt,
         });
       }

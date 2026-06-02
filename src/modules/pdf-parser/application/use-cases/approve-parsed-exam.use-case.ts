@@ -7,6 +7,7 @@ import { GroupsRepository } from '../../../groups/domain/repositories/groups.rep
 import { AlternativeEntity } from '../../../questions/domain/entities/alternative.entity';
 import { QuestionEntity } from '../../../questions/domain/entities/question.entity';
 import { DifficultyLevel } from '../../../questions/domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../../questions/domain/enums/question-type.enum';
 import { AlternativesRepository } from '../../../questions/domain/repositories/alternatives.repository';
 import { QuestionsRepository } from '../../../questions/domain/repositories/questions.repository';
 import { ImportStatus } from '../../domain/enums/import-status.enum';
@@ -106,6 +107,8 @@ export class ApproveParsedExamUseCase {
           parsed.discipline ?? null,
           parsed.topic ?? null,
           DifficultyLevel.MEDIUM,
+          QuestionType.MULTIPLE_CHOICE,
+          null,
           null,
           input.userId,
           now,

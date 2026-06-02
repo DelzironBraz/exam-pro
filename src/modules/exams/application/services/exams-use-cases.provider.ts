@@ -157,6 +157,7 @@ export const examsUseCasesProviders: Provider[] = [
       examsRepository: ExamsRepository,
       examAttemptsRepository: ExamAttemptsRepository,
       examAttemptAnswersRepository: ExamAttemptAnswersRepository,
+      questionsRepository: QuestionsRepository,
       alternativesRepository: AlternativesRepository,
       exceptionsService: ExceptionsService,
     ) =>
@@ -165,6 +166,7 @@ export const examsUseCasesProviders: Provider[] = [
         examsRepository,
         examAttemptsRepository,
         examAttemptAnswersRepository,
+        questionsRepository,
         alternativesRepository,
         exceptionsService,
       ),
@@ -173,6 +175,7 @@ export const examsUseCasesProviders: Provider[] = [
       EXAMS_REPOSITORY,
       EXAM_ATTEMPTS_REPOSITORY,
       EXAM_ATTEMPT_ANSWERS_REPOSITORY,
+      QUESTIONS_REPOSITORY,
       ALTERNATIVES_REPOSITORY,
       EXCEPTIONS_SERVICE,
     ],

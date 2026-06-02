@@ -195,20 +195,26 @@ Grupo → Questões → (Tags opcionais) → Simulado ou Prova
 
 **Endpoint:** `POST /api/questions`
 
+Dois tipos (`type`):
+
+| Tipo | Campos |
+|------|--------|
+| `multiple_choice` (padrão) | `alternatives` (mín. 2), uma correta |
+| `discursive` | `referenceAnswer` (gabarito textual); **sem** `alternatives` |
+
 Campos obrigatórios:
 - `statement`, `groupId`, `difficulty` (`easy` | `medium` | `hard`)
-- `alternatives` (mín. 2), cada uma com `label`, `content`, `isCorrect`
-- Exatamente **uma** alternativa com `isCorrect: true`
+- Para múltipla escolha: `alternatives` com `label`, `content`, `isCorrect` (exatamente uma correta)
+- Para discursiva: `referenceAnswer`
 
-Campos opcionais: `discipline`, `topic`, `explanation`, `tags[]`
+Campos opcionais: `type`, `discipline`, `topic`, `explanation`, `tags[]`
 
 **Validações no frontend (antes de enviar):**
-- Pelo menos 2 alternativas
-- Labels únicos (A, B, C…)
-- Uma e apenas uma correta
+- Múltipla escolha: ≥2 alternativas, labels únicos, uma correta
+- Discursiva: `referenceAnswer` preenchido, sem alternativas
 - Grupo selecionado
 
-**View:** `QuestionFormPage` com editor de alternativas dinâmico
+**View:** `QuestionFormPage` com toggle tipo + editor de alternativas **ou** campo de gabarito textual
 
 **Listagem/filtro:** `GET /api/questions?groupId=<uuid>&discipline=&topic=&difficulty=&tags=enem,matematica&page=1&limit=20`
 
@@ -363,17 +369,20 @@ Modo **estudo/revisão** com feedback imediato.
 ### Sequência
 
 1. Filtrar banco: `GET /api/questions?groupId=&page=&limit=`
-   - Cada item já traz `alternatives` (sem gabarito), `completed` e `lastAnswer` (se já respondida)
-2. Renderizar questões na listagem com seleção de alternativa inline
+   - Cada item traz `type`, `alternatives` (se múltipla escolha), `referenceAnswer` (se discursiva), `completed` e `lastAnswer`
+2. Renderizar conforme o tipo:
+   - `multiple_choice`: seleção de alternativa inline
+   - `discursive`: campo de texto livre
 3. Cronometrar tempo localmente por questão
 4. Confirmar resposta: `POST /api/questions/:id/answer`
 5. Atualizar item localmente ou refetch da página:
    - `completed: true`
    - `lastAnswer.isCorrect` para feedback visual
-   - resposta do POST traz `correctAlternativeId` e `explanation` para exibir gabarito
-6. UI: marcar visualmente questões com `completed: true` (badge "Realizada") e exibir gabarito/explicação retornados pelo POST
+   - múltipla escolha: POST retorna `correctAlternativeId` e `explanation`
+   - discursiva: POST retorna `similarityScore`, `referenceAnswer` e `explanation`
+6. UI: marcar questões com `completed: true` e exibir gabarito/explicação
 
-**Body do POST `/questions/:id/answer`:**
+**Body — múltipla escolha:**
 
 ```json
 {
@@ -382,7 +391,16 @@ Modo **estudo/revisão** com feedback imediato.
 }
 ```
 
-**Resposta (`data`):**
+**Body — discursiva:**
+
+```json
+{
+  "textAnswer": "Resposta do aluno...",
+  "timeSpentSeconds": 120
+}
+```
+
+**Resposta — múltipla escolha (`data`):**
 
 ```json
 {
@@ -392,13 +410,26 @@ Modo **estudo/revisão** com feedback imediato.
 }
 ```
 
-> Não é necessário abrir `GET /questions/:id` só para responder — a listagem já traz alternativas.
+**Resposta — discursiva (`data`):**
+
+```json
+{
+  "isCorrect": true,
+  "similarityScore": 0.91,
+  "referenceAnswer": "Gabarito esperado",
+  "explanation": "Texto opcional"
+}
+```
+
+> Avaliação discursiva usa similaridade textual (sem IA). Score ≥ **0,72** = correto.
+
+> Não é necessário abrir `GET /questions/:id` só para responder — a listagem já traz o necessário por tipo.
 
 ### View sugerida
 
 | View | Detalhes |
 |------|----------|
-| `QuestionBankPage` | Lista paginada + filtros; cards com alternativas inline e badge `completed` |
+| `QuestionBankPage` | Lista paginada + filtros; cards com alternativas ou campo texto conforme `type` |
 | `QuestionPracticePage` | Opcional — detalhe de uma questão; listagem já suporta resposta inline |
 
 ### Boas práticas

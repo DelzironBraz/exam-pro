@@ -71,14 +71,16 @@ model ExamAttemptAnswer {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   attemptId             String   @map("attempt_id") @db.Uuid
   questionId            String   @map("question_id") @db.Uuid
-  selectedAlternativeId String   @map("selected_alternative_id") @db.Uuid
+  selectedAlternativeId String?  @map("selected_alternative_id") @db.Uuid
+  textAnswer            String?  @map("text_answer") @db.Text
+  similarityScore       Float?   @map("similarity_score")
   timeSpentSeconds      Int      @map("time_spent_seconds")
   isCorrect             Boolean  @map("is_correct")
   answeredAt            DateTime @default(now()) @map("answered_at")
 
-  attempt             ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  question            Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  selectedAlternative Alternative @relation("ExamAttemptAnswers", fields: [selectedAlternativeId], references: [id], onDelete: Restrict)
+  attempt             ExamAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question            Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAlternative Alternative? @relation("ExamAttemptAnswers", fields: [selectedAlternativeId], references: [id], onDelete: Restrict)
 
   @@unique([attemptId, questionId])
   @@map("exam_attempt_answers")

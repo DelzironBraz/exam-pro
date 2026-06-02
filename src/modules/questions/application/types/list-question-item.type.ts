@@ -2,10 +2,13 @@ import { AlternativeEntity } from '../../domain/entities/alternative.entity';
 import { QuestionEntity } from '../../domain/entities/question.entity';
 
 export interface ListQuestionLastAnswer {
-  selectedAlternativeId: string;
+  selectedAlternativeId?: string | null;
+  textAnswer?: string | null;
+  similarityScore?: number | null;
   isCorrect: boolean;
   answeredAt: Date;
   correctAlternativeId?: string;
+  referenceAnswer?: string;
 }
 
 export interface ListQuestionItem {

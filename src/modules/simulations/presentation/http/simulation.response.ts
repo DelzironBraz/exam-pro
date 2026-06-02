@@ -48,7 +48,9 @@ export class SimulationResponse {
 
 export class SimulationAttemptAnswerResponse {
   questionId: string;
-  selectedAlternativeId: string;
+  selectedAlternativeId?: string | null;
+  textAnswer?: string | null;
+  similarityScore?: number | null;
   timeSpentSeconds: number;
   isCorrect: boolean;
   answeredAt: Date;
@@ -56,6 +58,8 @@ export class SimulationAttemptAnswerResponse {
   constructor(answer: SimulationAttemptAnswerEntity) {
     this.questionId = answer.questionId;
     this.selectedAlternativeId = answer.selectedAlternativeId;
+    this.textAnswer = answer.textAnswer ?? undefined;
+    this.similarityScore = answer.similarityScore ?? undefined;
     this.timeSpentSeconds = answer.timeSpentSeconds;
     this.isCorrect = answer.isCorrect;
     this.answeredAt = answer.answeredAt;

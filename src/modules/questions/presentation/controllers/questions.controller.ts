@@ -143,6 +143,7 @@ export class QuestionsController {
       userId: user.sub,
       questionId: id,
       selectedAlternativeId: dto.selectedAlternativeId,
+      textAnswer: dto.textAnswer,
       timeSpentSeconds: dto.timeSpentSeconds,
     });
   }

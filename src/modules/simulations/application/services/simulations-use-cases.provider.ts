@@ -123,6 +123,7 @@ export const simulationsUseCasesProviders: Provider[] = [
       simulationsRepository: SimulationsRepository,
       simulationAttemptsRepository: SimulationAttemptsRepository,
       simulationAttemptAnswersRepository: SimulationAttemptAnswersRepository,
+      questionsRepository: QuestionsRepository,
       alternativesRepository: AlternativesRepository,
       exceptionsService: ExceptionsService,
     ) =>
@@ -131,6 +132,7 @@ export const simulationsUseCasesProviders: Provider[] = [
         simulationsRepository,
         simulationAttemptsRepository,
         simulationAttemptAnswersRepository,
+        questionsRepository,
         alternativesRepository,
         exceptionsService,
       ),
@@ -139,6 +141,7 @@ export const simulationsUseCasesProviders: Provider[] = [
       SIMULATIONS_REPOSITORY,
       SIMULATION_ATTEMPTS_REPOSITORY,
       SIMULATION_ATTEMPT_ANSWERS_REPOSITORY,
+      QUESTIONS_REPOSITORY,
       ALTERNATIVES_REPOSITORY,
       EXCEPTIONS_SERVICE,
     ],

@@ -2,6 +2,7 @@ import { ExceptionsService } from '../../../../shared/domain/exceptions/exceptio
 import { Logger } from '../../../../shared/domain/logger/logger.interface';
 import { QuestionEntity } from '../../domain/entities/question.entity';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { QuestionType } from '../../domain/enums/question-type.enum';
 import { QuestionsRepository } from '../../domain/repositories/questions.repository';
 
 export interface UpdateQuestionInput {
@@ -10,6 +11,8 @@ export interface UpdateQuestionInput {
   discipline?: string;
   topic?: string;
   difficulty?: DifficultyLevel;
+  type?: QuestionType;
+  referenceAnswer?: string;
   explanation?: string;
 }
 
@@ -28,6 +31,18 @@ export class UpdateQuestionUseCase {
       this.exceptionsService.notFoundException({ message: 'Question not found' });
     }
 
+    const type = input.type ?? existing.type;
+    const referenceAnswer =
+      input.referenceAnswer !== undefined
+        ? input.referenceAnswer.trim() || null
+        : existing.referenceAnswer;
+
+    if (type === QuestionType.DISCURSIVE && !referenceAnswer) {
+      this.exceptionsService.badRequestException({
+        message: 'referenceAnswer is required for discursive questions',
+      });
+    }
+
     const updated = new QuestionEntity(
       existing.id,
       input.statement ?? existing.statement,
@@ -35,6 +50,8 @@ export class UpdateQuestionUseCase {
       input.discipline !== undefined ? input.discipline : existing.discipline,
       input.topic !== undefined ? input.topic : existing.topic,
       input.difficulty ?? existing.difficulty,
+      type,
+      type === QuestionType.DISCURSIVE ? referenceAnswer : null,
       input.explanation !== undefined ? input.explanation : existing.explanation,
       existing.createdBy,
       existing.createdAt,

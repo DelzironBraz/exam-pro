@@ -29,6 +29,8 @@ export class PrismaQuestionsRepository
         discipline: question.discipline,
         topic: question.topic,
         difficulty: question.difficulty,
+        type: question.type,
+        referenceAnswer: question.referenceAnswer,
         explanation: question.explanation,
         createdBy: question.createdBy,
         createdAt: question.createdAt,
@@ -67,6 +69,8 @@ export class PrismaQuestionsRepository
         discipline: question.discipline,
         topic: question.topic,
         difficulty: question.difficulty,
+        type: question.type,
+        referenceAnswer: question.referenceAnswer,
         explanation: question.explanation,
       },
     });

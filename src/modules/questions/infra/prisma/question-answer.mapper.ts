@@ -8,6 +8,8 @@ export class QuestionAnswerMapper {
       record.userId,
       record.questionId,
       record.selectedAlternativeId,
+      record.textAnswer,
+      record.similarityScore,
       record.timeSpentSeconds,
       record.isCorrect,
       record.createdAt,

@@ -1,26 +1,30 @@
+import { QuestionType } from '../../domain/enums/question-type.enum';
+
 export interface AlternativeInput {
   label: string;
   content: string;
   isCorrect: boolean;
 }
 
-const DISSERTATIVE_DISCIPLINE_PREFIX = 'Direito ';
-
-export function isDissertativeDiscipline(discipline?: string | null): boolean {
-  if (!discipline?.trim()) {
-    return false;
+export function validateQuestionInput(input: {
+  type: QuestionType;
+  alternatives: AlternativeInput[];
+  referenceAnswer?: string;
+}): string | null {
+  if (input.type === QuestionType.DISCURSIVE) {
+    if (!input.referenceAnswer?.trim()) {
+      return 'referenceAnswer is required for discursive questions';
+    }
+    if (input.alternatives.length > 0) {
+      return 'Discursive questions cannot have alternatives';
+    }
+    return null;
   }
-  return discipline.trim().startsWith(DISSERTATIVE_DISCIPLINE_PREFIX);
+
+  return validateAlternatives(input.alternatives);
 }
 
-export function validateAlternatives(
-  alternatives: AlternativeInput[],
-  options?: { allowDissertative?: boolean },
-): string | null {
-  if (alternatives.length === 0) {
-    return options?.allowDissertative ? null : 'At least two alternatives are required';
-  }
-
+export function validateAlternatives(alternatives: AlternativeInput[]): string | null {
   if (alternatives.length < 2) {
     return 'At least two alternatives are required';
   }
