@@ -36,6 +36,7 @@ export class AssessmentQuestionResponse {
   sectionId?: string | null;
   question: AssessmentQuestionDetailResponse;
   alternatives: AssessmentAlternativeResponse[];
+  answers: AssessmentAlternativeResponse[];
   answered: boolean;
   selectedAlternativeId?: string;
   answeredAt?: Date;
@@ -47,6 +48,7 @@ export class AssessmentQuestionResponse {
     this.alternatives = item.alternatives.map(
       (alternative) => new AssessmentAlternativeResponse(alternative),
     );
+    this.answers = this.alternatives;
     this.answered = item.answered;
 
     if (item.answer) {

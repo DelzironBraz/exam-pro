@@ -361,6 +361,9 @@ Autentica com e-mail e senha (Passport Local).
       "createdBy": "...",
       "createdAt": "...",
       "tags": ["geografia"],
+      "answers": [
+        { "id": "...", "label": "A", "content": "..." }
+      ],
       "alternatives": [
         { "id": "...", "label": "A", "content": "..." }
       ],
@@ -368,8 +371,10 @@ Autentica com e-mail e senha (Passport Local).
       "lastAnswer": {
         "selectedAlternativeId": "...",
         "isCorrect": true,
+        "correctAlternativeId": "...",
         "answeredAt": "2026-05-30T12:00:00.000Z"
-      }
+      },
+      "explanation": "Brasília foi fundada em 1960."
     }
   ],
   "total": 42,
@@ -379,9 +384,9 @@ Autentica com e-mail e senha (Passport Local).
 }
 ```
 
-> A listagem inclui **alternativas** (sem gabarito) para responder direto na UI.  
+> A listagem inclui **`answers`** (e `alternatives`, alias) com as opções de resposta para responder direto na UI.  
 > `completed: true` indica que o usuário logado já respondeu a questão (`POST /questions/:id/answer`).  
-> `lastAnswer` traz o resultado da última resposta quando `completed` é `true`.
+> Quando `completed`, cada answer inclui `isCorrect`, `explanation` é retornada e `lastAnswer.correctAlternativeId` traz o gabarito.
 
 ### `GET /questions/:id` — **Autenticado**
 
@@ -624,6 +629,9 @@ Lista questões da simulação para realização, com alternativas (sem gabarito
         "difficulty": "medium"
       },
       "alternatives": [
+        { "id": "uuid", "label": "A", "content": "..." }
+      ],
+      "answers": [
         { "id": "uuid", "label": "A", "content": "..." }
       ],
       "answered": true,

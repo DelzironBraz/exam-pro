@@ -31,11 +31,13 @@ export class QuestionResponse {
   createdAt: Date;
   tags: string[];
   alternatives?: AlternativeResponse[];
+  answers?: AlternativeResponse[];
   completed?: boolean;
   lastAnswer?: {
     selectedAlternativeId: string;
     isCorrect: boolean;
     answeredAt: Date;
+    correctAlternativeId?: string;
   };
 
   constructor(
@@ -64,9 +66,12 @@ export class QuestionResponse {
     }
 
     if (options?.alternatives) {
-      this.alternatives = options.alternatives.map(
-        (alt) => new AlternativeResponse(alt, options.revealCorrect ?? false),
+      const revealCorrect = options.revealCorrect ?? false;
+      const mapped = options.alternatives.map(
+        (alt) => new AlternativeResponse(alt, revealCorrect),
       );
+      this.alternatives = mapped;
+      this.answers = mapped;
     }
 
     if (options?.completed !== undefined) {
@@ -86,7 +91,8 @@ export class QuestionResponse {
     return new QuestionResponse(item.question, {
       tags: item.tags,
       alternatives: item.alternatives,
-      revealCorrect: false,
+      revealCorrect: item.completed,
+      includeExplanation: item.completed,
       completed: item.completed,
       lastAnswer: item.lastAnswer,
     });

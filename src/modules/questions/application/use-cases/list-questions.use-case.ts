@@ -68,17 +68,20 @@ export class ListQuestionsUseCase {
 
     const items: ListQuestionItem[] = questions.map((question, index) => {
       const lastAnswerEntity = latestAnswers.get(question.id);
+      const alternatives = alternativesByQuestionId.get(question.id) ?? [];
+      const correctAlternative = alternatives.find((alternative) => alternative.isCorrect);
       const lastAnswer = lastAnswerEntity
         ? {
             selectedAlternativeId: lastAnswerEntity.selectedAlternativeId,
             isCorrect: lastAnswerEntity.isCorrect,
             answeredAt: lastAnswerEntity.createdAt,
+            correctAlternativeId: correctAlternative?.id,
           }
         : undefined;
 
       return {
         question,
-        alternatives: alternativesByQuestionId.get(question.id) ?? [],
+        alternatives,
         tags: tagsList[index] ?? [],
         completed: latestAnswers.has(question.id),
         lastAnswer,

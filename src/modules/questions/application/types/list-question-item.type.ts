@@ -5,6 +5,7 @@ export interface ListQuestionLastAnswer {
   selectedAlternativeId: string;
   isCorrect: boolean;
   answeredAt: Date;
+  correctAlternativeId?: string;
 }
 
 export interface ListQuestionItem {
