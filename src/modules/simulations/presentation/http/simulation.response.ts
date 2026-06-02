@@ -13,6 +13,7 @@ export class SimulationResponse {
   createdBy: string;
   createdAt: Date;
   questionIds?: string[];
+  totalQuestions?: number;
 
   constructor(simulation: SimulationEntity, questionIds?: string[]) {
     this.id = simulation.id;
@@ -27,7 +28,17 @@ export class SimulationResponse {
   }
 
   static from(simulation: SimulationEntity, questionIds?: string[]): SimulationResponse {
-    return new SimulationResponse(simulation, questionIds);
+    const response = new SimulationResponse(simulation, questionIds);
+    if (questionIds) {
+      response.totalQuestions = questionIds.length;
+    }
+    return response;
+  }
+
+  static fromListItem(item: { simulation: SimulationEntity; totalQuestions: number }): SimulationResponse {
+    const response = new SimulationResponse(item.simulation);
+    response.totalQuestions = item.totalQuestions;
+    return response;
   }
 
   static fromList(simulations: SimulationEntity[]): SimulationResponse[] {

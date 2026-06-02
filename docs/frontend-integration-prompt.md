@@ -363,9 +363,17 @@ Modo **estudo/revisão** com feedback imediato.
 ### Sequência
 
 1. Filtrar banco: `GET /api/questions?groupId=&page=&limit=`
-2. Abrir questão: `GET /api/questions/:id` → alternativas **sem** `isCorrect` (student)
-3. Cronometrar tempo localmente
-4. Enviar: `POST /api/questions/:id/answer`
+   - Cada item já traz `alternatives` (sem gabarito), `completed` e `lastAnswer` (se já respondida)
+2. Renderizar questões na listagem com seleção de alternativa inline
+3. Cronometrar tempo localmente por questão
+4. Confirmar resposta: `POST /api/questions/:id/answer`
+5. Atualizar item localmente ou refetch da página:
+   - `completed: true`
+   - `lastAnswer.isCorrect` para feedback visual
+   - resposta do POST traz `correctAlternativeId` e `explanation` para exibir gabarito
+6. UI: marcar visualmente questões com `completed: true` (badge "Realizada") e exibir gabarito/explicação retornados pelo POST
+
+**Body do POST `/questions/:id/answer`:**
 
 ```json
 {
@@ -374,7 +382,7 @@ Modo **estudo/revisão** com feedback imediato.
 }
 ```
 
-5. Resposta (`data`):
+**Resposta (`data`):**
 
 ```json
 {
@@ -384,15 +392,14 @@ Modo **estudo/revisão** com feedback imediato.
 }
 ```
 
-6. UI: destacar alternativa correta/incorreta + mostrar explicação
+> Não é necessário abrir `GET /questions/:id` só para responder — a listagem já traz alternativas.
 
 ### View sugerida
 
 | View | Detalhes |
 |------|----------|
-| `QuestionBankPage` | Lista paginada + filtros |
-| `QuestionPracticePage` | Uma questão por vez; feedback pós-resposta |
-| `QuestionReviewMode` | Navegação sequencial entre items da página atual |
+| `QuestionBankPage` | Lista paginada + filtros; cards com alternativas inline e badge `completed` |
+| `QuestionPracticePage` | Opcional — detalhe de uma questão; listagem já suporta resposta inline |
 
 ### Boas práticas
 
@@ -428,7 +435,7 @@ sequenceDiagram
 
 ### Passo a passo
 
-1. **Escolher simulado** — listagem paginada por grupo
+1. **Escolher simulado** — listagem paginada por grupo; exibir `totalQuestions` em cada card
 2. **Preview** — `GET /api/simulations/:id` → `questionIds.length`
 3. **Iniciar** — `POST /api/simulations/:id/start`
 
@@ -507,7 +514,7 @@ Analogous ao simulado, com diferenças:
 
 ### Sequência
 
-1. `GET /api/exams?groupId=&page=&limit=`
+1. `GET /api/exams?groupId=&page=&limit=` — cada item inclui `totalQuestions`
 2. `GET /api/exams/:id` → montar UI por seções (se existirem) ou lista flat de `questionIds`
 3. `POST /api/exams/:id/start` → `attempt` + metadados `exam`
 4. Loop de respostas → `POST /api/exams/attempts/:attemptId/answers`

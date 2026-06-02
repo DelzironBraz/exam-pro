@@ -38,6 +38,26 @@ export class PrismaAlternativesRepository
     return alternatives.map(AlternativeMapper.toDomain);
   }
 
+  async findByQuestionIds(questionIds: string[]): Promise<Map<string, AlternativeEntity[]>> {
+    const map = new Map<string, AlternativeEntity[]>();
+    if (questionIds.length === 0) {
+      return map;
+    }
+
+    const alternatives = await this.prisma.alternative.findMany({
+      where: { questionId: { in: questionIds } },
+      orderBy: { label: 'asc' },
+    });
+
+    for (const alternative of alternatives) {
+      const list = map.get(alternative.questionId) ?? [];
+      list.push(AlternativeMapper.toDomain(alternative));
+      map.set(alternative.questionId, list);
+    }
+
+    return map;
+  }
+
   async deleteByQuestionId(questionId: string): Promise<void> {
     await this.prisma.alternative.deleteMany({ where: { questionId } });
   }

@@ -28,4 +28,27 @@ export class PrismaQuestionAnswersRepository
     });
     return QuestionAnswerMapper.toDomain(created);
   }
+
+  async findLatestByUserForQuestions(
+    userId: string,
+    questionIds: string[],
+  ): Promise<Map<string, QuestionAnswerEntity>> {
+    const map = new Map<string, QuestionAnswerEntity>();
+    if (questionIds.length === 0) {
+      return map;
+    }
+
+    const answers = await this.prisma.questionAnswer.findMany({
+      where: { userId, questionId: { in: questionIds } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    for (const answer of answers) {
+      if (!map.has(answer.questionId)) {
+        map.set(answer.questionId, QuestionAnswerMapper.toDomain(answer));
+      }
+    }
+
+    return map;
+  }
 }

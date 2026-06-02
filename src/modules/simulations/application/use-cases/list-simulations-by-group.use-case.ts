@@ -6,8 +6,8 @@ import {
 import { ExceptionsService } from '../../../../shared/domain/exceptions/exceptions.interface';
 import { Logger } from '../../../../shared/domain/logger/logger.interface';
 import { GroupsRepository } from '../../../groups/domain/repositories/groups.repository';
-import { SimulationEntity } from '../../domain/entities/simulation.entity';
 import { SimulationsRepository } from '../../domain/repositories/simulations.repository';
+import { SimulationListItem } from '../types/simulation-list-item.type';
 
 export interface ListSimulationsByGroupInput {
   groupId: string;
@@ -25,7 +25,7 @@ export class ListSimulationsByGroupUseCase {
 
   async execute(
     input: ListSimulationsByGroupInput,
-  ): Promise<PaginatedResult<SimulationEntity>> {
+  ): Promise<PaginatedResult<SimulationListItem>> {
     this.logger.log(
       ListSimulationsByGroupUseCase.name,
       `Listing simulations for group ${input.groupId}`,
@@ -37,10 +37,19 @@ export class ListSimulationsByGroupUseCase {
     }
 
     const pagination = resolvePagination(input);
-    const [items, total] = await Promise.all([
+    const [simulations, total] = await Promise.all([
       this.simulationsRepository.findManyByGroup(input.groupId, pagination),
       this.simulationsRepository.countByGroup(input.groupId),
     ]);
+
+    const simulationIds = simulations.map((simulation) => simulation.id);
+    const questionCounts =
+      await this.simulationsRepository.countQuestionsBySimulationIds(simulationIds);
+
+    const items: SimulationListItem[] = simulations.map((simulation) => ({
+      simulation,
+      totalQuestions: questionCounts.get(simulation.id) ?? 0,
+    }));
 
     return buildPaginatedResult(items, total, pagination);
   }

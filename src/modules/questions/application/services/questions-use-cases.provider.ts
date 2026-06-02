@@ -85,9 +85,27 @@ export const questionsUseCasesProviders: Provider[] = [
   },
   {
     provide: ListQuestionsUseCase,
-    useFactory: (logger: Logger, questionsRepository: QuestionsRepository) =>
-      new ListQuestionsUseCase(logger, questionsRepository),
-    inject: [LOGGER, QUESTIONS_REPOSITORY],
+    useFactory: (
+      logger: Logger,
+      questionsRepository: QuestionsRepository,
+      alternativesRepository: AlternativesRepository,
+      questionAnswersRepository: QuestionAnswersRepository,
+      tagsRepository: TagsRepository,
+    ) =>
+      new ListQuestionsUseCase(
+        logger,
+        questionsRepository,
+        alternativesRepository,
+        questionAnswersRepository,
+        tagsRepository,
+      ),
+    inject: [
+      LOGGER,
+      QUESTIONS_REPOSITORY,
+      ALTERNATIVES_REPOSITORY,
+      QUESTION_ANSWERS_REPOSITORY,
+      TAGS_REPOSITORY,
+    ],
   },
   {
     provide: UpdateQuestionUseCase,

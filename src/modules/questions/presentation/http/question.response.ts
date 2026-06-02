@@ -1,6 +1,7 @@
 import { AlternativeEntity } from '../../domain/entities/alternative.entity';
 import { QuestionEntity } from '../../domain/entities/question.entity';
 import { DifficultyLevel } from '../../domain/enums/difficulty-level.enum';
+import { ListQuestionItem } from '../../application/types/list-question-item.type';
 
 export class AlternativeResponse {
   id: string;
@@ -30,6 +31,12 @@ export class QuestionResponse {
   createdAt: Date;
   tags: string[];
   alternatives?: AlternativeResponse[];
+  completed?: boolean;
+  lastAnswer?: {
+    selectedAlternativeId: string;
+    isCorrect: boolean;
+    answeredAt: Date;
+  };
 
   constructor(
     question: QuestionEntity,
@@ -38,6 +45,8 @@ export class QuestionResponse {
       alternatives?: AlternativeEntity[];
       revealCorrect?: boolean;
       includeExplanation?: boolean;
+      completed?: boolean;
+      lastAnswer?: ListQuestionItem['lastAnswer'];
     },
   ) {
     this.id = question.id;
@@ -59,10 +68,28 @@ export class QuestionResponse {
         (alt) => new AlternativeResponse(alt, options.revealCorrect ?? false),
       );
     }
+
+    if (options?.completed !== undefined) {
+      this.completed = options.completed;
+    }
+
+    if (options?.lastAnswer) {
+      this.lastAnswer = options.lastAnswer;
+    }
   }
 
   static fromSummary(question: QuestionEntity, tags: string[] = []): QuestionResponse {
     return new QuestionResponse(question, { tags });
+  }
+
+  static fromListItem(item: ListQuestionItem): QuestionResponse {
+    return new QuestionResponse(item.question, {
+      tags: item.tags,
+      alternatives: item.alternatives,
+      revealCorrect: false,
+      completed: item.completed,
+      lastAnswer: item.lastAnswer,
+    });
   }
 
   static fromDetail(

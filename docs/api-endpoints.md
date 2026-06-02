@@ -350,7 +350,28 @@ Autentica com e-mail e senha (Passport Local).
 
 ```json
 {
-  "items": [ { "id": "...", "statement": "...", "tags": [], ... } ],
+  "items": [
+    {
+      "id": "...",
+      "statement": "...",
+      "groupId": "...",
+      "discipline": "Geografia",
+      "topic": "Capitais",
+      "difficulty": "medium",
+      "createdBy": "...",
+      "createdAt": "...",
+      "tags": ["geografia"],
+      "alternatives": [
+        { "id": "...", "label": "A", "content": "..." }
+      ],
+      "completed": true,
+      "lastAnswer": {
+        "selectedAlternativeId": "...",
+        "isCorrect": true,
+        "answeredAt": "2026-05-30T12:00:00.000Z"
+      }
+    }
+  ],
   "total": 42,
   "page": 1,
   "limit": 20,
@@ -358,7 +379,9 @@ Autentica com e-mail e senha (Passport Local).
 }
 ```
 
-> Na listagem, alternativas e gabarito **não** são retornados.
+> A listagem inclui **alternativas** (sem gabarito) para responder direto na UI.  
+> `completed: true` indica que o usuário logado já respondeu a questão (`POST /questions/:id/answer`).  
+> `lastAnswer` traz o resultado da última resposta quando `completed` é `true`.
 
 ### `GET /questions/:id` — **Autenticado**
 
@@ -547,7 +570,28 @@ Substitui todas as tags da questão.
 | `page` | int | não (default `1`) |
 | `limit` | int | não (default `20`, max `100`) |
 
-**Saída (`data`)** — resposta paginada de `SimulationResponse`
+**Saída (`data`)** — resposta paginada de `SimulationResponse` (inclui `totalQuestions` por item)
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "title": "Simulado ENEM",
+      "groupId": "uuid",
+      "timerMode": "fixed",
+      "durationMinutes": 90,
+      "totalQuestions": 20,
+      "createdBy": "uuid",
+      "createdAt": "..."
+    }
+  ],
+  "total": 5,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 1
+}
+```
 
 ### `GET /simulations/:id` — **Autenticado**
 
@@ -882,7 +926,30 @@ Cards pendentes de revisão (somente frente, sem `backContent`).
 | `page` | int | não |
 | `limit` | int | não |
 
-**Saída (`data`)** — resposta paginada de `ExamResponse`
+**Saída (`data`)** — resposta paginada de `ExamResponse` (inclui `totalQuestions` por item)
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "groupId": "uuid",
+      "title": "TJ-SP 2025",
+      "institution": "TJ-SP",
+      "organization": "Vunesp",
+      "year": 2025,
+      "roleName": "Escrevente Judiciário",
+      "durationMinutes": 300,
+      "totalQuestions": 50,
+      "createdAt": "..."
+    }
+  ],
+  "total": 3,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 1
+}
+```
 
 ### `GET /exams/attempts/me` — **Autenticado** (paginado)
 

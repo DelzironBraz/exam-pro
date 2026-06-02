@@ -5,6 +5,8 @@ export abstract class AlternativesRepository {
 
   abstract findByQuestionId(questionId: string): Promise<AlternativeEntity[]>;
 
+  abstract findByQuestionIds(questionIds: string[]): Promise<Map<string, AlternativeEntity[]>>;
+
   abstract deleteByQuestionId(questionId: string): Promise<void>;
 }
 

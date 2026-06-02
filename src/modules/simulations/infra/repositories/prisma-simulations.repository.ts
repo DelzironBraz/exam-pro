@@ -72,6 +72,31 @@ export class PrismaSimulationsRepository
     return this.prisma.simulation.count({ where: { groupId } });
   }
 
+  async countQuestionsBySimulationIds(simulationIds: string[]): Promise<Map<string, number>> {
+    const map = new Map<string, number>();
+    if (simulationIds.length === 0) {
+      return map;
+    }
+
+    const counts = await this.prisma.simulationQuestion.groupBy({
+      by: ['simulationId'],
+      where: { simulationId: { in: simulationIds } },
+      _count: { questionId: true },
+    });
+
+    for (const row of counts) {
+      map.set(row.simulationId, row._count.questionId);
+    }
+
+    for (const id of simulationIds) {
+      if (!map.has(id)) {
+        map.set(id, 0);
+      }
+    }
+
+    return map;
+  }
+
   async setQuestions(simulationId: string, questionIds: string[]): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.simulationQuestion.deleteMany({ where: { simulationId } });

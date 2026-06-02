@@ -71,7 +71,7 @@ export class SimulationsController {
   @ApiOperation({ summary: 'List simulations by group (paginated)' })
   async findByGroup(@Query() query: ListSimulationsQueryDto) {
     const result = await this.listSimulationsByGroupUseCase.execute(query);
-    return new PaginatedResponse(result, SimulationResponse.from);
+    return new PaginatedResponse(result, SimulationResponse.fromListItem);
   }
 
   @Get('attempts/:attemptId')

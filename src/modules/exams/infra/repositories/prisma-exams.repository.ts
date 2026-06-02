@@ -136,4 +136,29 @@ export class PrismaExamsRepository extends PrismaRepository implements ExamsRepo
   async countQuestions(examId: string): Promise<number> {
     return this.prisma.examQuestion.count({ where: { examId } });
   }
+
+  async countQuestionsByExamIds(examIds: string[]): Promise<Map<string, number>> {
+    const map = new Map<string, number>();
+    if (examIds.length === 0) {
+      return map;
+    }
+
+    const counts = await this.prisma.examQuestion.groupBy({
+      by: ['examId'],
+      where: { examId: { in: examIds } },
+      _count: { questionId: true },
+    });
+
+    for (const row of counts) {
+      map.set(row.examId, row._count.questionId);
+    }
+
+    for (const id of examIds) {
+      if (!map.has(id)) {
+        map.set(id, 0);
+      }
+    }
+
+    return map;
+  }
 }

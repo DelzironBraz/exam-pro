@@ -62,6 +62,12 @@ export class ExamResponse {
     return new ExamResponse(exam);
   }
 
+  static fromListItem(item: { exam: ExamEntity; totalQuestions: number }): ExamResponse {
+    const response = new ExamResponse(item.exam);
+    response.totalQuestions = item.totalQuestions;
+    return response;
+  }
+
   static fromDetail(output: GetExamOutput): ExamResponse {
     return new ExamResponse(output.exam, output);
   }

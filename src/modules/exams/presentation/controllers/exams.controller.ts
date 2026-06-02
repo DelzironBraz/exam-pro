@@ -78,7 +78,7 @@ export class ExamsController {
   @ApiOperation({ summary: 'List exams by group (paginated)' })
   async findByGroup(@Query() query: ListExamsQueryDto) {
     const result = await this.listExamsByGroupUseCase.execute(query);
-    return new PaginatedResponse(result, ExamResponse.from);
+    return new PaginatedResponse(result, ExamResponse.fromListItem);
   }
 
   @Get('attempts/me')

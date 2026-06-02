@@ -19,6 +19,8 @@ export abstract class ExamsRepository {
 
   abstract countByGroup(groupId: string): Promise<number>;
 
+  abstract countQuestionsByExamIds(examIds: string[]): Promise<Map<string, number>>;
+
   abstract findByGroupAndTitle(groupId: string, title: string): Promise<ExamEntity | null>;
 
   abstract appendQuestions(examId: string, links: ExamQuestionLink[]): Promise<void>;

@@ -6,8 +6,8 @@ import {
 import { ExceptionsService } from '../../../../shared/domain/exceptions/exceptions.interface';
 import { Logger } from '../../../../shared/domain/logger/logger.interface';
 import { GroupsRepository } from '../../../groups/domain/repositories/groups.repository';
-import { ExamEntity } from '../../domain/entities/exam.entity';
 import { ExamsRepository } from '../../domain/repositories/exams.repository';
+import { ExamListItem } from '../types/exam-list-item.type';
 
 export interface ListExamsByGroupInput {
   groupId: string;
@@ -23,7 +23,7 @@ export class ListExamsByGroupUseCase {
     private readonly exceptionsService: ExceptionsService,
   ) {}
 
-  async execute(input: ListExamsByGroupInput): Promise<PaginatedResult<ExamEntity>> {
+  async execute(input: ListExamsByGroupInput): Promise<PaginatedResult<ExamListItem>> {
     this.logger.log(
       ListExamsByGroupUseCase.name,
       `Listing exams for group ${input.groupId}`,
@@ -35,10 +35,18 @@ export class ListExamsByGroupUseCase {
     }
 
     const pagination = resolvePagination(input);
-    const [items, total] = await Promise.all([
+    const [exams, total] = await Promise.all([
       this.examsRepository.findManyByGroup(input.groupId, pagination),
       this.examsRepository.countByGroup(input.groupId),
     ]);
+
+    const examIds = exams.map((exam) => exam.id);
+    const questionCounts = await this.examsRepository.countQuestionsByExamIds(examIds);
+
+    const items: ExamListItem[] = exams.map((exam) => ({
+      exam,
+      totalQuestions: questionCounts.get(exam.id) ?? 0,
+    }));
 
     return buildPaginatedResult(items, total, pagination);
   }

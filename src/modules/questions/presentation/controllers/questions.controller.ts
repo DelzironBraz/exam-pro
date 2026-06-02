@@ -69,10 +69,19 @@ export class QuestionsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'List questions (authenticated, paginated)' })
-  async findAll(@Query() query: ListQuestionsQueryDto) {
-    const result = await this.listQuestionsUseCase.execute(query);
-    return new PaginatedResponse(result, QuestionResponse.fromSummary);
+  @ApiOperation({
+    summary:
+      'List questions for practice (paginated, with alternatives and completed status)',
+  })
+  async findAll(
+    @Query() query: ListQuestionsQueryDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const result = await this.listQuestionsUseCase.execute({
+      ...query,
+      userId: user.sub,
+    });
+    return new PaginatedResponse(result, QuestionResponse.fromListItem);
   }
 
   @Get(':id')

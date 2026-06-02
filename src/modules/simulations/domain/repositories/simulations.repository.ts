@@ -17,6 +17,8 @@ export abstract class SimulationsRepository {
 
   abstract countByGroup(groupId: string): Promise<number>;
 
+  abstract countQuestionsBySimulationIds(simulationIds: string[]): Promise<Map<string, number>>;
+
   abstract setQuestions(simulationId: string, questionIds: string[]): Promise<void>;
 
   abstract findQuestionIds(simulationId: string): Promise<string[]>;
