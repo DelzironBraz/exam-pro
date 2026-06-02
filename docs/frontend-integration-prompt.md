@@ -422,10 +422,13 @@ sequenceDiagram
 
   S->>API: GET /simulations?groupId=&page=
   S->>API: GET /simulations/:id
-  Note over S: Carregar cada questão via GET /questions/:id
   S->>API: POST /simulations/:id/start
   API-->>S: attempt + timer config
-  loop Para cada questão
+  loop Para cada página de questões
+    S->>API: GET /simulations/:id/questions?attemptId=&page=&limit=
+    API-->>S: items paginados com alternatives + answered
+  end
+  loop Para cada resposta confirmada
     S->>API: POST /simulations/attempts/:attemptId/answers
     API-->>S: { isCorrect } (opcional na UI)
   end
@@ -447,12 +450,14 @@ Resposta:
 }
 ```
 
-4. **Montar prova na UI**
-   - Para cada `questionId`, chamar `GET /api/questions/:id`
-   - Manter estado local: `{ questionId, selectedAlternativeId, timeSpentSeconds, answered }`
+4. **Carregar questões paginadas**
+   - `GET /api/simulations/:id/questions?attemptId=<uuid>&page=1&limit=10`
+   - Cada item já traz `alternatives`, `sortOrder`, `answered` e `selectedAlternativeId` (se já respondida)
+   - Navegar páginas até cobrir `totalQuestions`; **não** chamar `GET /questions/:id` por questão
+5. **Montar prova na UI**
+   - Manter estado local por página ou cache incremental entre páginas
    - Cronômetro global baseado em `timer.mode` / `durationMinutes`
-
-5. **Submeter cada resposta** — `POST /api/simulations/attempts/:attemptId/answers`
+6. **Submeter cada resposta** — `POST /api/simulations/attempts/:attemptId/answers`
 
 ```json
 {
@@ -465,7 +470,7 @@ Resposta:
 - Upsert: reenviar mesma questão **substitui** resposta anterior
 - Não enviar após `finishedAt` preenchido
 
-6. **Finalizar** — `POST /api/simulations/attempts/:attemptId/finish`
+7. **Finalizar** — `POST /api/simulations/attempts/:attemptId/finish`
 
 ```json
 {
@@ -477,8 +482,8 @@ Resposta:
 
 > Se houver respostas salvas via submit, o backend **recalcula** totais a partir delas (valores do body podem ser ignorados quando há answers persistidas).
 
-7. **Resultado** — resposta inclui `scorePercent`, `answers[]` com detalhes
-8. **Retomar/consultar** — `GET /api/simulations/attempts/:attemptId`
+8. **Resultado** — resposta inclui `scorePercent`, `answers[]` com detalhes
+9. **Retomar/consultar** — `GET /api/simulations/attempts/:attemptId`
 
 ### Views sugeridas
 
@@ -515,8 +520,8 @@ Analogous ao simulado, com diferenças:
 ### Sequência
 
 1. `GET /api/exams?groupId=&page=&limit=` — cada item inclui `totalQuestions`
-2. `GET /api/exams/:id` → montar UI por seções (se existirem) ou lista flat de `questionIds`
-3. `POST /api/exams/:id/start` → `attempt` + metadados `exam`
+2. `POST /api/exams/:id/start` → `attempt` + metadados `exam`
+3. `GET /api/exams/:id/questions?attemptId=<uuid>&page=&limit=` — questões paginadas com alternativas
 4. Loop de respostas → `POST /api/exams/attempts/:attemptId/answers`
 5. `POST /api/exams/attempts/:attemptId/finish` com `{ totalCorrect, totalWrong, totalTimeSeconds }`
 6. `GET /api/exams/attempts/:attemptId` → `ExamResultResponse`
@@ -638,10 +643,10 @@ interface AppState {
 | Question form (admin) | `POST /questions`, `PATCH /questions/:id` |
 | Simulation builder | `GET /questions`, `POST /simulations` |
 | Simulation list | `GET /simulations?groupId=` |
-| Simulation runner | `POST /simulations/:id/start`, `POST .../answers`, `POST .../finish` |
+| Simulation runner | `POST /simulations/:id/start`, `GET /simulations/:id/questions`, `POST .../answers`, `POST .../finish` |
 | Exam builder | `POST /exams`, `POST /exams/:id/sections` |
 | Exam list | `GET /exams?groupId=` |
-| Exam runner | `POST /exams/:id/start`, `POST .../answers`, `POST .../finish` |
+| Exam runner | `POST /exams/:id/start`, `GET /exams/:id/questions`, `POST .../answers`, `POST .../finish` |
 | Exam history | `GET /exams/attempts/me` |
 | PDF import | `/pdf-parser/exams/*`, `GET /pdf-parser/jobs` |
 | Dashboard | `GET /analytics/dashboard` |

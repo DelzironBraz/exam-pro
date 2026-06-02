@@ -36,6 +36,7 @@ import { DeleteSimulationUseCase } from '../use-cases/delete-simulation.use-case
 import { FinishSimulationUseCase } from '../use-cases/finish-simulation.use-case';
 import { GetSimulationAttemptUseCase } from '../use-cases/get-simulation-attempt.use-case';
 import { GetSimulationUseCase } from '../use-cases/get-simulation.use-case';
+import { ListSimulationQuestionsUseCase } from '../use-cases/list-simulation-questions.use-case';
 import { ListSimulationsByGroupUseCase } from '../use-cases/list-simulations-by-group.use-case';
 import { StartSimulationUseCase } from '../use-cases/start-simulation.use-case';
 import { SubmitSimulationAnswerUseCase } from '../use-cases/submit-simulation-answer.use-case';
@@ -161,6 +162,36 @@ export const simulationsUseCasesProviders: Provider[] = [
     inject: [
       LOGGER,
       SIMULATIONS_REPOSITORY,
+      SIMULATION_ATTEMPTS_REPOSITORY,
+      SIMULATION_ATTEMPT_ANSWERS_REPOSITORY,
+      EXCEPTIONS_SERVICE,
+    ],
+  },
+  {
+    provide: ListSimulationQuestionsUseCase,
+    useFactory: (
+      logger: Logger,
+      simulationsRepository: SimulationsRepository,
+      questionsRepository: QuestionsRepository,
+      alternativesRepository: AlternativesRepository,
+      simulationAttemptsRepository: SimulationAttemptsRepository,
+      simulationAttemptAnswersRepository: SimulationAttemptAnswersRepository,
+      exceptionsService: ExceptionsService,
+    ) =>
+      new ListSimulationQuestionsUseCase(
+        logger,
+        simulationsRepository,
+        questionsRepository,
+        alternativesRepository,
+        simulationAttemptsRepository,
+        simulationAttemptAnswersRepository,
+        exceptionsService,
+      ),
+    inject: [
+      LOGGER,
+      SIMULATIONS_REPOSITORY,
+      QUESTIONS_REPOSITORY,
+      ALTERNATIVES_REPOSITORY,
       SIMULATION_ATTEMPTS_REPOSITORY,
       SIMULATION_ATTEMPT_ANSWERS_REPOSITORY,
       EXCEPTIONS_SERVICE,

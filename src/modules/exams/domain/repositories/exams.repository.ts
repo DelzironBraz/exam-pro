@@ -7,6 +7,12 @@ export interface ExamQuestionLink {
   sortOrder?: number;
 }
 
+export interface ExamQuestionLinkRow {
+  questionId: string;
+  sectionId: string | null;
+  sortOrder: number;
+}
+
 export abstract class ExamsRepository {
   abstract create(exam: ExamEntity): Promise<ExamEntity>;
 
@@ -32,6 +38,11 @@ export abstract class ExamsRepository {
   abstract setQuestions(examId: string, links: ExamQuestionLink[]): Promise<void>;
 
   abstract findQuestionIds(examId: string): Promise<string[]>;
+
+  abstract findQuestionLinksPaginated(
+    examId: string,
+    pagination: PaginationParams,
+  ): Promise<ExamQuestionLinkRow[]>;
 
   abstract countQuestions(examId: string): Promise<number>;
 }

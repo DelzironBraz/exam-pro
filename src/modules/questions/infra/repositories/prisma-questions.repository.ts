@@ -42,6 +42,23 @@ export class PrismaQuestionsRepository
     return question ? QuestionMapper.toDomain(question) : null;
   }
 
+  async findByIds(ids: string[]): Promise<QuestionEntity[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const questions = await this.prisma.question.findMany({
+      where: { id: { in: ids } },
+    });
+
+    const byId = new Map(questions.map((question) => [question.id, question]));
+
+    return ids
+      .map((id) => byId.get(id))
+      .filter((question): question is NonNullable<typeof question> => question !== undefined)
+      .map(QuestionMapper.toDomain);
+  }
+
   async update(question: QuestionEntity): Promise<QuestionEntity> {
     const updated = await this.prisma.question.update({
       where: { id: question.id },

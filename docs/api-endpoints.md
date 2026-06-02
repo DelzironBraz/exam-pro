@@ -597,6 +597,49 @@ Substitui todas as tags da questão.
 
 **Saída (`data`)** — `SimulationResponse` (com `questionIds`)
 
+### `GET /simulations/:id/questions` — **Autenticado** (paginado)
+
+Lista questões da simulação para realização, com alternativas (sem gabarito) em uma única requisição paginada.
+
+**Entrada (query)**
+
+| Parâmetro | Tipo | Obrigatório |
+|-----------|------|-------------|
+| `page` | int | não (default `1`) |
+| `limit` | int | não (default `20`, max `100`) |
+| `attemptId` | UUID | não (inclui respostas salvas da tentativa) |
+
+**Saída (`data`)**
+
+```json
+{
+  "items": [
+    {
+      "sortOrder": 0,
+      "question": {
+        "id": "uuid",
+        "statement": "...",
+        "discipline": "Direito",
+        "topic": "Penal",
+        "difficulty": "medium"
+      },
+      "alternatives": [
+        { "id": "uuid", "label": "A", "content": "..." }
+      ],
+      "answered": true,
+      "selectedAlternativeId": "uuid",
+      "answeredAt": "2026-05-30T12:00:00.000Z"
+    }
+  ],
+  "total": 50,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 3
+}
+```
+
+> Use este endpoint durante a realização do simulado em vez de `GET /questions/:id` por questão.
+
 ### `DELETE /simulations/:id` — **Admin**
 
 **Saída (`data`)**
@@ -983,6 +1026,22 @@ Cards pendentes de revisão (somente frente, sem `backContent`).
 
 **Saída (`data`)** — `ExamResponse` (detalhe completo)
 
+### `GET /exams/:id/questions` — **Autenticado** (paginado)
+
+Lista questões da prova para realização, com alternativas (sem gabarito) em uma única requisição paginada.
+
+**Entrada (query)**
+
+| Parâmetro | Tipo | Obrigatório |
+|-----------|------|-------------|
+| `page` | int | não |
+| `limit` | int | não |
+| `attemptId` | UUID | não (inclui respostas salvas da tentativa) |
+
+**Saída (`data`)** — igual ao formato de `GET /simulations/:id/questions`, com campo extra `sectionId` por item quando a questão pertence a uma seção.
+
+> Use este endpoint durante a realização da prova em vez de `GET /questions/:id` por questão.
+
 ### `PATCH /exams/:id` — **Admin**
 
 **Entrada (body)** — opcionais: `title`, `institution`, `organization`, `year`, `roleName`, `durationMinutes`
@@ -1351,14 +1410,14 @@ Sincroniza uma matéria (ex.: `Direito_Penal`).
 | Groups | 5 |
 | Questions | 6 |
 | Tags | 12 |
-| Simulations | 8 |
+| Simulations | 9 |
 | Flashcards | 7 |
 | Study Plans | 7 |
-| Exams | 12 |
+| Exams | 13 |
 | PDF Parser | 8 |
 | Analytics | 3 |
 | Crawlers (JurisWay) | 2 |
-| **Total** | **76** |
+| **Total** | **78** |
 
 ---
 

@@ -11,6 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ListAssessmentQuestionsQueryDto } from '../../../../shared/application/dto/list-assessment-questions-query.dto';
+import { AssessmentQuestionResponse } from '../../../../shared/presentation/http/assessment-question.response';
 import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
@@ -32,6 +34,7 @@ import { DeleteExamUseCase } from '../../application/use-cases/delete-exam.use-c
 import { FinishExamUseCase } from '../../application/use-cases/finish-exam.use-case';
 import { GetExamAttemptUseCase } from '../../application/use-cases/get-exam-attempt.use-case';
 import { GetExamUseCase } from '../../application/use-cases/get-exam.use-case';
+import { ListExamQuestionsUseCase } from '../../application/use-cases/list-exam-questions.use-case';
 import { ListExamsByGroupUseCase } from '../../application/use-cases/list-exams-by-group.use-case';
 import { ListUserExamAttemptsUseCase } from '../../application/use-cases/list-user-exam-attempts.use-case';
 import { StartExamUseCase } from '../../application/use-cases/start-exam.use-case';
@@ -52,6 +55,7 @@ export class ExamsController {
     private readonly createExamUseCase: CreateExamUseCase,
     private readonly getExamUseCase: GetExamUseCase,
     private readonly listExamsByGroupUseCase: ListExamsByGroupUseCase,
+    private readonly listExamQuestionsUseCase: ListExamQuestionsUseCase,
     private readonly updateExamUseCase: UpdateExamUseCase,
     private readonly deleteExamUseCase: DeleteExamUseCase,
     private readonly addExamSectionUseCase: AddExamSectionUseCase,
@@ -104,6 +108,24 @@ export class ExamsController {
   ) {
     const detail = await this.getExamAttemptUseCase.execute(attemptId, user.sub);
     return new ExamResultResponse(detail);
+  }
+
+  @Get(':id/questions')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List exam questions for attempt (paginated, with alternatives)',
+  })
+  async listQuestions(
+    @Param('id', ParseUUIDPipe) examId: string,
+    @Query() query: ListAssessmentQuestionsQueryDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const result = await this.listExamQuestionsUseCase.execute({
+      examId,
+      userId: user.sub,
+      ...query,
+    });
+    return new PaginatedResponse(result, (item) => new AssessmentQuestionResponse(item));
   }
 
   @Get(':id')

@@ -42,6 +42,7 @@ import { DeleteExamUseCase } from '../use-cases/delete-exam.use-case';
 import { FinishExamUseCase } from '../use-cases/finish-exam.use-case';
 import { GetExamAttemptUseCase } from '../use-cases/get-exam-attempt.use-case';
 import { GetExamUseCase } from '../use-cases/get-exam.use-case';
+import { ListExamQuestionsUseCase } from '../use-cases/list-exam-questions.use-case';
 import { ListExamsByGroupUseCase } from '../use-cases/list-exams-by-group.use-case';
 import { ListUserExamAttemptsUseCase } from '../use-cases/list-user-exam-attempts.use-case';
 import { StartExamUseCase } from '../use-cases/start-exam.use-case';
@@ -220,6 +221,36 @@ export const examsUseCasesProviders: Provider[] = [
       LOGGER,
       EXAM_ATTEMPTS_REPOSITORY,
       EXAMS_REPOSITORY,
+      EXAM_ATTEMPT_ANSWERS_REPOSITORY,
+      EXCEPTIONS_SERVICE,
+    ],
+  },
+  {
+    provide: ListExamQuestionsUseCase,
+    useFactory: (
+      logger: Logger,
+      examsRepository: ExamsRepository,
+      questionsRepository: QuestionsRepository,
+      alternativesRepository: AlternativesRepository,
+      examAttemptsRepository: ExamAttemptsRepository,
+      examAttemptAnswersRepository: ExamAttemptAnswersRepository,
+      exceptionsService: ExceptionsService,
+    ) =>
+      new ListExamQuestionsUseCase(
+        logger,
+        examsRepository,
+        questionsRepository,
+        alternativesRepository,
+        examAttemptsRepository,
+        examAttemptAnswersRepository,
+        exceptionsService,
+      ),
+    inject: [
+      LOGGER,
+      EXAMS_REPOSITORY,
+      QUESTIONS_REPOSITORY,
+      ALTERNATIVES_REPOSITORY,
+      EXAM_ATTEMPTS_REPOSITORY,
       EXAM_ATTEMPT_ANSWERS_REPOSITORY,
       EXCEPTIONS_SERVICE,
     ],

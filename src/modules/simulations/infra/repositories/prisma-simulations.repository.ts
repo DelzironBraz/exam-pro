@@ -4,7 +4,10 @@ import { toPrismaPagination } from '../../../../shared/application/utils/paginat
 import { PrismaRepository } from '../../../../shared/database/prisma/prisma.repository';
 import { PrismaService } from '../../../../shared/database/prisma/prisma.service';
 import { SimulationEntity } from '../../domain/entities/simulation.entity';
-import { SimulationsRepository } from '../../domain/repositories/simulations.repository';
+import {
+  SimulationQuestionLinkRow,
+  SimulationsRepository,
+} from '../../domain/repositories/simulations.repository';
 import { SimulationMapper } from '../prisma/simulation.mapper';
 
 @Injectable()
@@ -118,5 +121,31 @@ export class PrismaSimulationsRepository
       select: { questionId: true },
     });
     return rows.map((row) => row.questionId);
+  }
+
+  async findQuestionLinksPaginated(
+    simulationId: string,
+    pagination: PaginationParams,
+  ): Promise<SimulationQuestionLinkRow[]> {
+    const { skip, take } = toPrismaPagination(pagination);
+    const rows = await this.prisma.simulationQuestion.findMany({
+      where: { simulationId },
+      orderBy: { sortOrder: 'asc' },
+      skip,
+      take,
+      select: {
+        questionId: true,
+        sortOrder: true,
+      },
+    });
+
+    return rows.map((row) => ({
+      questionId: row.questionId,
+      sortOrder: row.sortOrder,
+    }));
+  }
+
+  async countQuestions(simulationId: string): Promise<number> {
+    return this.prisma.simulationQuestion.count({ where: { simulationId } });
   }
 }

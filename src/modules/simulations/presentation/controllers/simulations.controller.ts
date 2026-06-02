@@ -10,6 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ListAssessmentQuestionsQueryDto } from '../../../../shared/application/dto/list-assessment-questions-query.dto';
+import { AssessmentQuestionResponse } from '../../../../shared/presentation/http/assessment-question.response';
 import { PaginatedResponse } from '../../../../shared/presentation/http/paginated.response';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
@@ -26,6 +28,7 @@ import { DeleteSimulationUseCase } from '../../application/use-cases/delete-simu
 import { FinishSimulationUseCase } from '../../application/use-cases/finish-simulation.use-case';
 import { GetSimulationAttemptUseCase } from '../../application/use-cases/get-simulation-attempt.use-case';
 import { GetSimulationUseCase } from '../../application/use-cases/get-simulation.use-case';
+import { ListSimulationQuestionsUseCase } from '../../application/use-cases/list-simulation-questions.use-case';
 import { ListSimulationsByGroupUseCase } from '../../application/use-cases/list-simulations-by-group.use-case';
 import { StartSimulationUseCase } from '../../application/use-cases/start-simulation.use-case';
 import { SubmitSimulationAnswerUseCase } from '../../application/use-cases/submit-simulation-answer.use-case';
@@ -43,6 +46,7 @@ export class SimulationsController {
     private readonly createSimulationUseCase: CreateSimulationUseCase,
     private readonly getSimulationUseCase: GetSimulationUseCase,
     private readonly listSimulationsByGroupUseCase: ListSimulationsByGroupUseCase,
+    private readonly listSimulationQuestionsUseCase: ListSimulationQuestionsUseCase,
     private readonly deleteSimulationUseCase: DeleteSimulationUseCase,
     private readonly startSimulationUseCase: StartSimulationUseCase,
     private readonly submitSimulationAnswerUseCase: SubmitSimulationAnswerUseCase,
@@ -95,6 +99,24 @@ export class SimulationsController {
       totalQuestions: detail.totalQuestions,
       answers: detail.answers,
     });
+  }
+
+  @Get(':id/questions')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List simulation questions for attempt (paginated, with alternatives)',
+  })
+  async listQuestions(
+    @Param('id', ParseUUIDPipe) simulationId: string,
+    @Query() query: ListAssessmentQuestionsQueryDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const result = await this.listSimulationQuestionsUseCase.execute({
+      simulationId,
+      userId: user.sub,
+      ...query,
+    });
+    return new PaginatedResponse(result, (item) => new AssessmentQuestionResponse(item));
   }
 
   @Get(':id')

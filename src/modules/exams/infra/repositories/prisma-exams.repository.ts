@@ -6,6 +6,7 @@ import { PrismaService } from '../../../../shared/database/prisma/prisma.service
 import { ExamEntity } from '../../domain/entities/exam.entity';
 import {
   ExamQuestionLink,
+  ExamQuestionLinkRow,
   ExamsRepository,
 } from '../../domain/repositories/exams.repository';
 import { ExamMapper } from '../prisma/exam.mapper';
@@ -131,6 +132,30 @@ export class PrismaExamsRepository extends PrismaRepository implements ExamsRepo
       select: { questionId: true },
     });
     return rows.map((row) => row.questionId);
+  }
+
+  async findQuestionLinksPaginated(
+    examId: string,
+    pagination: PaginationParams,
+  ): Promise<ExamQuestionLinkRow[]> {
+    const { skip, take } = toPrismaPagination(pagination);
+    const rows = await this.prisma.examQuestion.findMany({
+      where: { examId },
+      orderBy: { sortOrder: 'asc' },
+      skip,
+      take,
+      select: {
+        questionId: true,
+        sectionId: true,
+        sortOrder: true,
+      },
+    });
+
+    return rows.map((row) => ({
+      questionId: row.questionId,
+      sectionId: row.sectionId,
+      sortOrder: row.sortOrder,
+    }));
   }
 
   async countQuestions(examId: string): Promise<number> {

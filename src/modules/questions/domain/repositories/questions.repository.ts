@@ -15,6 +15,8 @@ export abstract class QuestionsRepository {
 
   abstract findById(id: string): Promise<QuestionEntity | null>;
 
+  abstract findByIds(ids: string[]): Promise<QuestionEntity[]>;
+
   abstract update(question: QuestionEntity): Promise<QuestionEntity>;
 
   abstract delete(id: string): Promise<void>;
